@@ -25,3 +25,4 @@ cd efi-qemu
 ### Sources
 - https://blog.3mdeb.com/2015/2015-11-21-uefi-application-development-in-ovmf/
 - https://github.com/tianocore/tianocore.github.io/wiki/
+- https://raw.githubusercontent.com/pietrushnic/edk2/ovmf-helloworld/ovmf.sh
