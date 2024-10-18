@@ -22,6 +22,14 @@ cd efi-qemu
 ../ovmf.sh
 ```
 
+Inside qemu EFI shell type:
+```
+fs0:
+HelloWorld.efi
+```
+
+If the app printed "UEFI Hello World!", everything is working correctly.
+
 ### Sources
 - https://blog.3mdeb.com/2015/2015-11-21-uefi-application-development-in-ovmf/
 - https://github.com/tianocore/tianocore.github.io/wiki/
