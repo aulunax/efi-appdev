@@ -13,6 +13,7 @@ X64_TARGET_ARCH="X64"
 
 DISK_SIZEMB=32
 
+EFIAPP_NAME="HelloWorld"
 
 BUILD_APP_ONLY=false
 
@@ -22,8 +23,11 @@ while [ $# -gt 0 ]; do
     --build-app-only)
       BUILD_APP_ONLY=true
       ;;
+    --efiapp-name=*)
+      EFIAPP_NAME="${1#*=}"
+      ;;
     *)
-      echo "Usage: $0 [--build-app-only]"
+      echo "Usage: $0 [--build-app-only] [--efiapp-name=APPNAME]"
       exit 1
       ;;
   esac
@@ -98,7 +102,7 @@ sudo mkfs.vfat app.disk || { echo "Error: Failed to format disk image as FAT."; 
 # Add test app to the disk
 mkdir -p mnt_app
 sudo mount app.disk mnt_app || { echo "Error: Failed to mount app disk."; exit 1; }
-sudo cp "../edk2/Build/MdeModule/DEBUG_$GCC5_TOOL_CHAIN_TAG/$X64_TARGET_ARCH/HelloWorld.efi" mnt_app || { echo "Error: Failed to copy HelloWorld.efi to disk."; exit 1; }
+sudo cp "../edk2/Build/MdeModule/DEBUG_$GCC5_TOOL_CHAIN_TAG/$X64_TARGET_ARCH/$EFIAPP_NAME.efi" mnt_app || { sudo umount mnt_app; echo "Error: Failed to copy $EFIAPP_NAME.efi to disk."; exit 1; }
 sudo umount mnt_app || { echo "Error: Failed to unmount app disk."; exit 1; }
 
 # Copy ovmf image to qemu directory
