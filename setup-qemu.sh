@@ -61,18 +61,35 @@ if [ "$BUILD_APP_ONLY" = false ]; then
 
     cd edk2
 
+    # fatal: repository 'https://github.com/Zeex/subhook.git/' not found
+    # replacing original repo with a fork
+    sed -i 's|https://github.com/Zeex/subhook.git|https://github.com/zhagnyongfdsfsdfsdfsdf/subhook.git|' .gitmodules
+    git submodule sync
     git submodule update --init || { echo "Error: Failed to update submodules."; exit 1; }
 
     make -C BaseTools || { echo "Error: Failed to build BaseTools."; exit 1; }
     
     cd ..
 else
-  echo "Skipping edk2 setup and tool building as per --skip-build flag."
+  echo "Skipping edk2 download and tool building as per --build-app-only flag."
 fi
 
-cd edk2
 
-. ./edksetup.sh || { echo "Error: Failed to set up edk environment."; exit 1; }
+export WORKSPACE=$PWD || { echo "Error: Failed to set the WORKSPACE env flag."; exit 1; }
+export EDK_TOOLS_PATH=$WORKSPACE/edk2/BaseTools || { echo "Error: Failed to set the EDK_TOOLS_PATH env flag."; exit 1; }
+
+
+if [ -n "$WORKSPACE" ] 
+then
+  export PACKAGES_PATH=$WORKSPACE/edk2:$WORKSPACE/MyPlatform || { echo "Error: Failed to set the PACKAGES_PATH env flag."; exit 1; }
+fi
+
+mkdir Conf || { echo "Warning: Conf directory already exists. mkdir failed"; }
+
+# Setting env variables
+. ./edk2/edksetup.sh || { echo "Error: Failed to set up edk environment."; exit 1; }
+
+
 
 cd Conf
 
@@ -83,15 +100,15 @@ build -a $X64_TARGET_ARCH -t $GCC5_TOOL_CHAIN_TAG -p $MDEMODULE_ACTIVE_PLATFORM 
 build -a $X64_TARGET_ARCH -t $GCC5_TOOL_CHAIN_TAG -p $OVMF_ACTIVE_PLATFORM || { echo "Error: Failed to build OVMF."; exit 1; }
 
 
-cd ../..
+cd ..
 
-if [ "$BUILD_APP_ONLY" = true ]; then
+if [ "$BUILD_APP_ONLY" = true ] && [ -d "efi-qemu" ]; then
   echo "Removing efi-qemu directory..."
   rm -r efi-qemu
 fi
 
 # Creating qemu directory
-mkdir efi-qemu
+mkdir efi-qemu || { echo "Error: efi-qemu directory already exists. mkdir failed"; exit 1; }
 cd efi-qemu
 
 # Create disk image for the app
@@ -100,14 +117,14 @@ dd if=/dev/zero of=app.disk bs=1 count=1 seek=$(( ($DISK_SIZEMB * 1024 * 1024) -
 sudo mkfs.vfat app.disk || { echo "Error: Failed to format disk image as FAT."; exit 1; }
 
 # Add test app to the disk
-mkdir -p mnt_app
+mkdir -p mnt_app || { echo "Warning: mnt_app directory already exists. mkdir failed."; exit 1; }
 sudo mount app.disk mnt_app || { echo "Error: Failed to mount app disk."; exit 1; }
-sudo cp "../edk2/Build/MdeModule/DEBUG_$GCC5_TOOL_CHAIN_TAG/$X64_TARGET_ARCH/$EFIAPP_NAME.efi" mnt_app || { sudo umount mnt_app; echo "Error: Failed to copy $EFIAPP_NAME.efi to disk."; exit 1; }
+sudo cp "$WORKSPACE/Build/MdeModule/DEBUG_$GCC5_TOOL_CHAIN_TAG/$X64_TARGET_ARCH/$EFIAPP_NAME.efi" mnt_app || { sudo umount mnt_app; echo "Error: Failed to copy $EFIAPP_NAME.efi to disk."; exit 1; }
 sudo umount mnt_app || { echo "Error: Failed to unmount app disk."; exit 1; }
 
 # Copy ovmf image to qemu directory
 echo "Copying OVMF firmware image to QEMU directory..."
-cp "../edk2/Build/Ovmf$X64_TARGET_ARCH/DEBUG_$GCC5_TOOL_CHAIN_TAG/FV/OVMF.fd" ovmf.flash || { echo "Error: Failed to copy OVMF firmware."; exit 1; }
+cp "$WORKSPACE/Build/Ovmf$X64_TARGET_ARCH/DEBUG_$GCC5_TOOL_CHAIN_TAG/FV/OVMF.fd" ovmf.flash || { echo "Error: Failed to copy OVMF firmware."; exit 1; }
 
 echo "EFI setup for QEMU finished. Run omvf.sh to start the VM."
 
