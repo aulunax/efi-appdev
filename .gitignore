@@ -3,3 +3,4 @@ efi-qemu/
 Conf/
 Build/
 .vscode/
+.edkCode/

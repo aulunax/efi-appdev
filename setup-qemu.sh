@@ -6,10 +6,12 @@ set -e
 WORKING_DIRECTORY=$(pwd)
 CONF_TARGET_FILE="target.txt"
 
+GAMEMODULE_ACTIVE_PLATFORM="GameModulePkg/GameModulePkg.dsc"
 MDEMODULE_ACTIVE_PLATFORM="MdeModulePkg/MdeModulePkg.dsc"
 OVMF_ACTIVE_PLATFORM="OvmfPkg/OvmfPkgX64.dsc"
-GCC5_TOOL_CHAIN_TAG="GCC5"
-X64_TARGET_ARCH="X64"
+TOOL_CHAIN_TAG="GCC5"
+TARGET_ARCH="X64"
+BUILD_TARGET="DEBUG"
 
 DISK_SIZEMB=32
 
@@ -81,7 +83,7 @@ export EDK_TOOLS_PATH=$WORKSPACE/edk2/BaseTools || { echo "Error: Failed to set 
 
 if [ -n "$WORKSPACE" ] 
 then
-  export PACKAGES_PATH=$WORKSPACE/edk2:$WORKSPACE/MyPlatform || { echo "Error: Failed to set the PACKAGES_PATH env flag."; exit 1; }
+  export PACKAGES_PATH=$WORKSPACE/edk2:$WORKSPACE/GameModulePkg || { echo "Error: Failed to set the PACKAGES_PATH env flag."; exit 1; }
 fi
 
 mkdir Conf || { echo "Warning: Conf directory already exists. mkdir failed"; }
@@ -93,11 +95,14 @@ mkdir Conf || { echo "Warning: Conf directory already exists. mkdir failed"; }
 
 cd Conf
 
+# Build GameModule package
+build -a $TARGET_ARCH -t $TOOL_CHAIN_TAG -p $GAMEMODULE_ACTIVE_PLATFORM || { echo "Error: Failed to build GameModule."; exit 1; }
+
 # Build MdeModule package
-build -a $X64_TARGET_ARCH -t $GCC5_TOOL_CHAIN_TAG -p $MDEMODULE_ACTIVE_PLATFORM || { echo "Error: Failed to build MdeModule."; exit 1; }
+build -a $TARGET_ARCH -t $TOOL_CHAIN_TAG -p $MDEMODULE_ACTIVE_PLATFORM || { echo "Error: Failed to build MdeModule."; exit 1; }
             
 # Build Ovmf package
-build -a $X64_TARGET_ARCH -t $GCC5_TOOL_CHAIN_TAG -p $OVMF_ACTIVE_PLATFORM || { echo "Error: Failed to build OVMF."; exit 1; }
+build -a $TARGET_ARCH -t $TOOL_CHAIN_TAG -p $OVMF_ACTIVE_PLATFORM || { echo "Error: Failed to build OVMF."; exit 1; }
 
 
 cd ..
@@ -119,12 +124,12 @@ sudo mkfs.vfat app.disk || { echo "Error: Failed to format disk image as FAT."; 
 # Add test app to the disk
 mkdir -p mnt_app || { echo "Warning: mnt_app directory already exists. mkdir failed."; exit 1; }
 sudo mount app.disk mnt_app || { echo "Error: Failed to mount app disk."; exit 1; }
-sudo cp "$WORKSPACE/Build/MdeModule/DEBUG_$GCC5_TOOL_CHAIN_TAG/$X64_TARGET_ARCH/$EFIAPP_NAME.efi" mnt_app || { sudo umount mnt_app; echo "Error: Failed to copy $EFIAPP_NAME.efi to disk."; exit 1; }
+sudo cp "$WORKSPACE/Build/MdeModule/${BUILD_TARGET}_$TOOL_CHAIN_TAG/$TARGET_ARCH/$EFIAPP_NAME.efi" mnt_app || { sudo umount mnt_app; echo "Error: Failed to copy $EFIAPP_NAME.efi to disk."; exit 1; }
 sudo umount mnt_app || { echo "Error: Failed to unmount app disk."; exit 1; }
 
 # Copy ovmf image to qemu directory
 echo "Copying OVMF firmware image to QEMU directory..."
-cp "$WORKSPACE/Build/Ovmf$X64_TARGET_ARCH/DEBUG_$GCC5_TOOL_CHAIN_TAG/FV/OVMF.fd" ovmf.flash || { echo "Error: Failed to copy OVMF firmware."; exit 1; }
+cp "$WORKSPACE/Build/Ovmf$TARGET_ARCH/${BUILD_TARGET}_$TOOL_CHAIN_TAG/FV/OVMF.fd" ovmf.flash || { echo "Error: Failed to copy OVMF firmware."; exit 1; }
 
 echo "EFI setup for QEMU finished. Run omvf.sh to start the VM."
 
