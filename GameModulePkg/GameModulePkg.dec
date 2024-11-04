@@ -1,0 +1,32 @@
+## @file  GameModulePkg.dec
+#
+##
+
+[Defines]
+  DEC_SPECIFICATION              = 0x00010005
+  PACKAGE_NAME                   = GameModulePkg
+  PACKAGE_GUID                   = fa452691-f078-48f8-823f-0f70148bbcb2
+  PACKAGE_VERSION                = 0.01
+
+
+[PcdsFeatureFlag]
+  ## Indicates if HelloWorld Application will print the verbose information.
+  #  This PCD is a sample to explain FeatureFlag PCD usage.<BR><BR>
+  #   TRUE  - HelloWorld Application will print the verbose information.<BR>
+  #   FALSE - HelloWorld Application will not print the verbose information.<BR>
+  # @Prompt Enable HelloWorld print.
+  gEfiMdeModulePkgTokenSpaceGuid.PcdHelloWorldPrintEnable|TRUE|BOOLEAN|0x0001200a
+
+[PcdsFixedAtBuild, PcdsPatchableInModule, PcdsDynamic, PcdsDynamicEx]
+ ## This PCD defines the times to print hello world string.
+  #  This PCD is a sample to explain UINT32 PCD usage.
+  # @Prompt HellowWorld print times.
+  gEfiMdeModulePkgTokenSpaceGuid.PcdHelloWorldPrintTimes|3|UINT32|0x40000005
+
+  ## This PCD defines the HelloWorld print string.
+  #  This PCD is a sample to explain String typed PCD usage.
+  # @Prompt HelloWorld print string.
+  gEfiMdeModulePkgTokenSpaceGuid.PcdHelloWorldPrintString|L"UEFI Hello World!"|VOID*|0x40000004
+
+[Guids]
+  gEfiMdeModulePkgTokenSpaceGuid       = { 0xA1AFF049, 0xFDEB, 0x442a, { 0xB3, 0x20, 0x13, 0xAB, 0x4C, 0xB7, 0x2B, 0xBB }}

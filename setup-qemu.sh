@@ -99,10 +99,10 @@ cd Conf
 build -a $TARGET_ARCH -t $TOOL_CHAIN_TAG -p $GAMEMODULE_ACTIVE_PLATFORM || { echo "Error: Failed to build GameModule."; exit 1; }
 
 # Build MdeModule package
-build -a $TARGET_ARCH -t $TOOL_CHAIN_TAG -p $MDEMODULE_ACTIVE_PLATFORM || { echo "Error: Failed to build MdeModule."; exit 1; }
+# build -a $TARGET_ARCH -t $TOOL_CHAIN_TAG -p $MDEMODULE_ACTIVE_PLATFORM || { echo "Error: Failed to build MdeModule."; exit 1; }
             
 # Build Ovmf package
-build -a $TARGET_ARCH -t $TOOL_CHAIN_TAG -p $OVMF_ACTIVE_PLATFORM || { echo "Error: Failed to build OVMF."; exit 1; }
+#build -a $TARGET_ARCH -t $TOOL_CHAIN_TAG -p $OVMF_ACTIVE_PLATFORM || { echo "Error: Failed to build OVMF."; exit 1; }
 
 
 cd ..
@@ -124,7 +124,8 @@ sudo mkfs.vfat app.disk || { echo "Error: Failed to format disk image as FAT."; 
 # Add test app to the disk
 mkdir -p mnt_app || { echo "Warning: mnt_app directory already exists. mkdir failed."; exit 1; }
 sudo mount app.disk mnt_app || { echo "Error: Failed to mount app disk."; exit 1; }
-sudo cp "$WORKSPACE/Build/MdeModule/${BUILD_TARGET}_$TOOL_CHAIN_TAG/$TARGET_ARCH/$EFIAPP_NAME.efi" mnt_app || { sudo umount mnt_app; echo "Error: Failed to copy $EFIAPP_NAME.efi to disk."; exit 1; }
+#sudo cp "$WORKSPACE/Build/MdeModule/${BUILD_TARGET}_$TOOL_CHAIN_TAG/$TARGET_ARCH/$EFIAPP_NAME.efi" mnt_app || { sudo umount mnt_app; echo "Error: Failed to copy $EFIAPP_NAME.efi to disk."; exit 1; }
+sudo cp "$WORKSPACE/Build/GameModule/${BUILD_TARGET}_$TOOL_CHAIN_TAG/$TARGET_ARCH/$EFIAPP_NAME.efi" mnt_app || { sudo umount mnt_app; echo "Error: Failed to copy $EFIAPP_NAME.efi to disk."; exit 1; }
 sudo umount mnt_app || { echo "Error: Failed to unmount app disk."; exit 1; }
 
 # Copy ovmf image to qemu directory
