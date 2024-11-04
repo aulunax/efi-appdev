@@ -48,11 +48,11 @@
   PcdLib
 
 [FeaturePcd]
-  gEfiMdeModulePkgTokenSpaceGuid.PcdHelloWorldPrintEnable   ## CONSUMES
+  gEfiGameModulePkgTokenSpaceGuid.PcdHelloWorldPrintEnable   ## CONSUMES
 
 [Pcd]
-  gEfiMdeModulePkgTokenSpaceGuid.PcdHelloWorldPrintString   ## SOMETIMES_CONSUMES
-  gEfiMdeModulePkgTokenSpaceGuid.PcdHelloWorldPrintTimes    ## SOMETIMES_CONSUMES
+  gEfiGameModulePkgTokenSpaceGuid.PcdHelloWorldPrintString   ## SOMETIMES_CONSUMES
+  gEfiGameModulePkgTokenSpaceGuid.PcdHelloWorldPrintTimes    ## SOMETIMES_CONSUMES
 
 [UserExtensions.TianoCore."ExtraFiles"]
   HelloWorldExtra.uni

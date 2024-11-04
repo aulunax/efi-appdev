@@ -111,5 +111,5 @@
 
 [Components]
   GameModulePkg/Application/HelloWorld/HelloWorld.inf
-#  GameModulePkg/Application/Test/Test.inf
+  GameModulePkg/Application/Test/Test.inf
 #  GameModulePkg/Application/Tetris/Tetris.inf
