@@ -46,7 +46,7 @@ UefiMain (
     EFI_STATUS Status;
 
     // Allocate the buffer for the output
-    CHAR16 Buffer[30];
+    CHAR16 Buffer[35];
 
     // Create a timer event
     Status = gBS->CreateEvent(EVT_TIMER, TPL_NOTIFY, NULL, NULL, &FrameTimerEvent);
