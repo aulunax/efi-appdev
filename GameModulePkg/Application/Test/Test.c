@@ -6,7 +6,11 @@
 #include <Uefi.h>
 #include <Library/PcdLib.h>
 #include <Library/UefiLib.h>
+#include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiApplicationEntryPoint.h>
+#include <Library/PrintLib.h>
+#include <Library/MemoryAllocationLib.h>
+
 
 //
 // String token ID of help message text.
@@ -16,7 +20,7 @@
 // the resource section. Thus the application can use '-?' option to show help message in
 // Shell.
 //
-// GLOBAL_REMOVE_IF_UNREFERENCED EFI_STRING_ID  mStringHelpTokenId = STRING_TOKEN (STR_HELLO_WORLD_HELP_INFORMATION);
+GLOBAL_REMOVE_IF_UNREFERENCED EFI_STRING_ID  mStringHelpTokenId = STRING_TOKEN (STR_TEST_HELP_INFORMATION);
 
 /**
   The user Entry Point for Application. The user code starts with this function
@@ -36,21 +40,71 @@ UefiMain (
   IN EFI_SYSTEM_TABLE  *SystemTable
   )
 {
-  UINT32  Index;
+    EFI_EVENT FrameTimerEvent;
+    UINT32 FrameCounter;
+    UINT32 SubFramesCounter;
+    EFI_STATUS Status;
 
-  Index = 0;
+    // Allocate the buffer for the output
+    CHAR16 Buffer[30];
 
-  //
-  // Three PCD type (FeatureFlag, UINT32 and String) are used as the sample.
-  //
-  if (FeaturePcdGet (PcdHelloWorldPrintEnable)) {
-    for (Index = 0; Index < PcdGet32 (PcdHelloWorldPrintTimes); Index++) {
-      //
-      // Use UefiLib Print API to print string to UEFI console
-      //
-      Print ((CHAR16 *)PcdGetPtr (PcdHelloWorldPrintString));
+    // Create a timer event
+    Status = gBS->CreateEvent(EVT_TIMER, TPL_NOTIFY, NULL, NULL, &FrameTimerEvent);
+    if (EFI_ERROR(Status)) {
+        Print(L"Failed to create timer event: %r\n", Status);
+        return Status;
     }
-  }
 
-  return EFI_SUCCESS;
+    // Set the timer to trigger in 1/30th of a second (about 33.33 milliseconds)
+    Status = gBS->SetTimer(FrameTimerEvent, TimerPeriodic, 333333);
+    if (EFI_ERROR(Status)) {
+        Print(L"Failed to set timer: %r\n", Status);
+        gBS->CloseEvent(FrameTimerEvent);
+        return Status;
+    }
+
+    FrameCounter = 0;
+    SubFramesCounter = 0;
+    // Loop to perform the operation at constant intervals
+    // This will be smth like a main game loop
+    while (FrameCounter < PcdGet32(PcdTestTimes)) {
+
+
+        // This is timer for checking whether its time to finish the frame
+        Status = gBS->CheckEvent(FrameTimerEvent);
+        if ((RETURN_STATUS)Status == EFI_NOT_READY) {
+            SubFramesCounter++;
+            //
+            // stuff here happens multiple times in a 'frame' so
+            // do stuff like input handling here 
+            //
+            continue;
+        }
+        else if (EFI_ERROR(Status)) {
+            Print(L"Failed to check timer event: %r\n", Status);
+            gBS->CloseEvent(FrameTimerEvent);
+            return Status;
+        }
+
+        //
+        // Here goes stuff that happens once during a frame,
+        // so like rendering, game logic etc.
+        //
+
+
+        UnicodeSPrint(Buffer, 
+                      sizeof(Buffer), 
+                      L"Frame: %d, Subframes: %d", 
+                      FrameCounter + 1,
+                      SubFramesCounter + 1);
+
+        Print(L"%s\n", Buffer);
+        SubFramesCounter = 0;
+        FrameCounter++;
+    }
+
+    // Clean up and close the timer event
+    gBS->CloseEvent(FrameTimerEvent);
+
+    return EFI_SUCCESS;
 }

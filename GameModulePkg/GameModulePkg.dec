@@ -8,9 +8,6 @@
   PACKAGE_GUID                   = fa452691-f078-48f8-823f-0f70148bbcb2
   PACKAGE_VERSION                = 0.01
 
-[Includes]
-  Include
-
 [PcdsFeatureFlag]
   ## Indicates if HelloWorld Application will print the verbose information.
   #  This PCD is a sample to explain FeatureFlag PCD usage.<BR><BR>
@@ -30,5 +27,7 @@
   # @Prompt HelloWorld print string.
   gEfiGameModulePkgTokenSpaceGuid.PcdHelloWorldPrintString|L"UEFI Hello World!"|VOID*|0x40000004
 
+
+  gEfiGameModulePkgTokenSpaceGuid.PcdTestTimes|100|UINT32|0x40000006
 [Guids]
   gEfiGameModulePkgTokenSpaceGuid       = { 0xA1AFF049, 0xFDEB, 0x442a, { 0xB3, 0x20, 0x13, 0xAB, 0x4C, 0xB7, 0x2B, 0xBB }}

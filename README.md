@@ -25,10 +25,11 @@ cd efi-qemu
 Inside qemu EFI shell type:
 ```
 fs0:
-HelloWorld.efi
+Test.efi
 ```
 
-If the app printed "UEFI Hello World!", everything is working correctly.
+### TODO
+- Create a makefile instead of shell script for easier rebuilding
 
 ### Sources
 - https://blog.3mdeb.com/2015/2015-11-21-uefi-application-development-in-ovmf/

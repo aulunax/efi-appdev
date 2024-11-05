@@ -4,3 +4,6 @@ Conf/
 Build/
 .vscode/
 .edkCode/
+
+
+BuildReport.log

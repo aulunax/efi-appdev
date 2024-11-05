@@ -35,6 +35,8 @@
 
 [Sources]
   Test.c
+  TestStr.uni
+
 
 [Packages]
   MdePkg/MdePkg.dec
@@ -45,10 +47,14 @@
   UefiApplicationEntryPoint
   UefiLib
   PcdLib
-
+  PrintLib
+  UefiBootServicesTableLib
+  MemoryAllocationLib
+  
 [FeaturePcd]
   gEfiGameModulePkgTokenSpaceGuid.PcdHelloWorldPrintEnable   ## CONSUMES
 
 [Pcd]
   gEfiGameModulePkgTokenSpaceGuid.PcdHelloWorldPrintString   ## SOMETIMES_CONSUMES
   gEfiGameModulePkgTokenSpaceGuid.PcdHelloWorldPrintTimes    ## SOMETIMES_CONSUMES
+  gEfiGameModulePkgTokenSpaceGuid.PcdTestTimes               ## SOMETIMES_CONSUMES

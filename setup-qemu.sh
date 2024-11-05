@@ -15,7 +15,7 @@ BUILD_TARGET="DEBUG"
 
 DISK_SIZEMB=32
 
-EFIAPP_NAME="HelloWorld"
+EFIAPP_NAME="Test"
 
 BUILD_APP_ONLY=false
 
@@ -96,13 +96,13 @@ mkdir Conf || { echo "Warning: Conf directory already exists. mkdir failed"; }
 cd Conf
 
 # Build GameModule package
-build -a $TARGET_ARCH -t $TOOL_CHAIN_TAG -p $GAMEMODULE_ACTIVE_PLATFORM || { echo "Error: Failed to build GameModule."; exit 1; }
+build -a $TARGET_ARCH -t $TOOL_CHAIN_TAG -p $GAMEMODULE_ACTIVE_PLATFORM -Y COMPILE_INFO -y BuildReport.log || { echo "Error: Failed to build GameModule."; exit 1; }
 
 # Build MdeModule package
 # build -a $TARGET_ARCH -t $TOOL_CHAIN_TAG -p $MDEMODULE_ACTIVE_PLATFORM || { echo "Error: Failed to build MdeModule."; exit 1; }
             
 # Build Ovmf package
-#build -a $TARGET_ARCH -t $TOOL_CHAIN_TAG -p $OVMF_ACTIVE_PLATFORM || { echo "Error: Failed to build OVMF."; exit 1; }
+build -a $TARGET_ARCH -t $TOOL_CHAIN_TAG -p $OVMF_ACTIVE_PLATFORM || { echo "Error: Failed to build OVMF."; exit 1; }
 
 
 cd ..
