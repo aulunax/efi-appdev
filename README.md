@@ -1,6 +1,7 @@
-Script to setup efi and qemu for efi app development
+# EFI Application Game (TBD)
+Game application in EFI/UEFI. Includes setup for EDK2 and QEMU for EFI/UEFI app development
 
-### Prerequisites
+## Prerequisites
 Install all required packages:
 - build-essential
 - uuid-dev 
@@ -13,25 +14,35 @@ Install all required packages:
 And qemu:
 - qemu-system
 
-### Installation
-Run the setup-qemu.sh with sudo
-
-If installation was successful:
-``` sh
-cd efi-qemu
-../ovmf.sh
+## Installation
+Run the setup-edk.sh to download edk2 repository from Github.
+```sh
+./setup-edk.sh
+```
+After that is finished, build everything by running:
+```sh
+make all
 ```
 
-Inside qemu EFI shell type:
+If build was successful, to launch QEMU:
+``` sh
+./ovmf.sh
+```
+
+To launch the EFI application inside QEMU, type in EFI shell:
 ```
 fs0:
-Test.efi
+ApplicationName.efi
 ```
 
-### TODO
-- Create a makefile instead of shell script for easier rebuilding
+'Test' is the default app to be copied to QEMU disk. You can change that by passing <b>EFI_APP=AppName</b> to make. 
+<br/>
+Example:
+```sh
+make rebuild EFI_APP=Tetris
+```
 
-### Sources
+## Sources
 - https://blog.3mdeb.com/2015/2015-11-21-uefi-application-development-in-ovmf/
 - https://github.com/tianocore/tianocore.github.io/wiki/
 - https://raw.githubusercontent.com/pietrushnic/edk2/ovmf-helloworld/ovmf.sh

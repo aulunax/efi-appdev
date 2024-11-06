@@ -1,5 +1,10 @@
 #!/bin/sh
 
+### WARNING
+# Don't use this file to setup the project
+# Use setup-edk.sh and make, this file is no longer maintained
+###
+
 # Exit script if anything fails
 set -e
 

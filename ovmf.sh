@@ -1,6 +1,6 @@
 # https://raw.githubusercontent.com/pietrushnic/edk2/ovmf-helloworld/ovmf.sh
 
-cd efi-qemu
+cd efi-qemu >/dev/null 2>&1
 
 # Basic virtual machine properties: a recent i440fx machine type, KVM
 # acceleration, 2048 MB RAM, two VCPUs.
