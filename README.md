@@ -26,7 +26,7 @@ make all
 
 If build was successful, to launch QEMU:
 ``` sh
-./ovmf.sh
+make run # or make run-text to not create graphical windows
 ```
 
 To launch the EFI application inside QEMU, type in EFI shell:

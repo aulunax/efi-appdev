@@ -44,10 +44,9 @@ help:
 	@echo "  all                - Build and do everything"
 	@echo "  rebuild            - Build the EFI GameModulePkg and copy EFI_APP to QEMU disk"
 	@echo "  clean              - Clean up build artifacts"
-	@echo "  build_basetools    - Build the BaseTools"
-	@echo "  build-ovmf         - Build the OVMF (Open Virtual Machine Firmware)"
-	@echo "  build-app          - Build the EFI GameModulePkg"
-	@echo "  add-app            - Adds app from GameModulePkg to disk (Default is 'Test')"
+	@echo "  run                - Run QEMU with GUI"
+	@echo "  run-text           - Run QEMU without GUI"
+	@echo "================="
 	@echo "  help               - Display this help message"
 
 all: check-dependencies build-basetools build-app build-ovmf add-app copy_ovmf
