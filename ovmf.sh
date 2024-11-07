@@ -2,9 +2,26 @@
 
 cd efi-qemu >/dev/null 2>&1
 
+NOGRAPHIC=false
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --nographic)
+      NOGRAPHIC=true
+      ;;
+    *)
+      echo "Usage: $0 [--nographic]"
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+# Enable gdb on localhost:1234
+OPTS="-s"
+
 # Basic virtual machine properties: a recent i440fx machine type, KVM
 # acceleration, 2048 MB RAM, two VCPUs.
-OPTS="-M pc-i440fx-2.1 -enable-kvm -m 2048 -smp 2"
+OPTS="$OPTS -M pc-i440fx-2.1 -enable-kvm -m 2048 -smp 2"
 
 # The OVMF binary, including the non-volatile variable store, appears as a
 # "normal" qemu drive on the host side, and it is exposed to the guest as a
@@ -16,7 +33,9 @@ OPTS="$OPTS -drive if=pflash,format=raw,file=ovmf.flash"
 # option. OVMF recognizes the boot order specification.
 # OPTS="$OPTS -drive id=disk0,if=none,format=qcow2,file=app.img"
 # OPTS="$OPTS -device virtio-blk-pci,drive=disk0,bootindex=0"
+
 OPTS="$OPTS -drive file=app.disk,index=0,media=disk,format=raw"
+#OPTS="$OPTS -hda fat:rw:hda-contents"
 
 # The Fedora installer disk appears as an IDE CD-ROM in the guest. This is
 # the 2nd boot option.
@@ -32,12 +51,16 @@ OPTS="$OPTS -global PIIX4_PM.disable_s3=0"
 # ioport 0x402. We configure qemu so that the debug console is indeed
 # available at that ioport. We redirect the host side of the debug console to
 # a file.
-OPTS="$OPTS -global isa-debugcon.iobase=0x402 -debugcon file:app.ovmf.log"
+OPTS="$OPTS -global isa-debugcon.iobase=0x402 -debugcon file:debug.log"
 
 # QEMU accepts various commands and queries from the user on the monitor
 # interface. Connect the monitor with the qemu process's standard input and
 # output.
-OPTS="$OPTS -monitor stdio"
+if [ $NOGRAPHIC = false ]; then
+    OPTS="$OPTS -monitor stdio"
+else
+    OPTS="$OPTS -nographic" # Uncomment this line (and comment line above) to disable the graphical window
+fi
 
 # A USB tablet device in the guest allows for accurate pointer tracking
 # between the host and the guest.

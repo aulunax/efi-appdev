@@ -16,6 +16,10 @@
 
 !include MdePkg/MdeLibs.dsc.inc
 
+[PcdsFixedAtBuild]
+  gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0x1f
+  gEfiMdePkgTokenSpaceGuid.PcdDebugPrintErrorLevel|0x80000040
+
 [LibraryClasses]
   #
   # Entry point
@@ -103,7 +107,6 @@
   IpmiCommandLib|MdeModulePkg/Library/BaseIpmiCommandLibNull/BaseIpmiCommandLibNull.inf
   SpiHcPlatformLib|MdeModulePkg/Library/BaseSpiHcPlatformLibNull/BaseSpiHcPlatformLibNull.inf
 
-[LibraryClasses.common.UEFI_APPLICATION]
   HobLib|MdePkg/Library/DxeHobLib/DxeHobLib.inf
   MemoryAllocationLib|MdePkg/Library/UefiMemoryAllocationLib/UefiMemoryAllocationLib.inf
   DebugLib|MdePkg/Library/UefiDebugLibStdErr/UefiDebugLibStdErr.inf
@@ -113,3 +116,5 @@
   GameModulePkg/Application/HelloWorld/HelloWorld.inf
   GameModulePkg/Application/Test/Test.inf
 #  GameModulePkg/Application/Tetris/Tetris.inf
+
+

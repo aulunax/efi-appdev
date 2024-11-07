@@ -51,7 +51,7 @@ help:
 	@echo "  help               - Display this help message"
 
 all: check-dependencies build-basetools build-app build-ovmf add-app copy_ovmf
-rebuild: check-dependencies build-app add-app
+rebuild: check-dependencies build-app add-app copy_ovmf
 
 create_conf_dir:
 	@if [ -d "Conf" ]; then \
@@ -92,14 +92,14 @@ create_disk_image: create_qemu_dir check-dependencies
 	@echo "Disk image created and formatted as FAT."
 
 # Add test app to the disk image
-add-app: create_disk_image build-app  
+add-app: create_disk_image build-app 
 	@mkdir -p efi-qemu/mnt_app
 	@if [ ! -f "$(WORKSPACE)/Build/GameModule/$(BUILD_TARGET)_$(TOOL_CHAIN_TAG)/$(TARGET_ARCH)/$(APP_NAME).efi" ]; then \
 		echo "$(WORKSPACE)/Build/GameModule/$(BUILD_TARGET)_$(TOOL_CHAIN_TAG)/$(TARGET_ARCH)/$(APP_NAME).efi not found"; \
 		exit 1; \
 	fi
 	@sudo mount efi-qemu/app.disk efi-qemu/mnt_app
-	@sudo cp "$(WORKSPACE)/Build/GameModule/$(BUILD_TARGET)_$(TOOL_CHAIN_TAG)/$(TARGET_ARCH)/$(APP_NAME).efi" efi-qemu/mnt_app
+	@sudo cp -r $(WORKSPACE)/Build/GameModule/$(BUILD_TARGET)_$(TOOL_CHAIN_TAG)/$(TARGET_ARCH)/* efi-qemu/mnt_app || { sudo umount efi-qemu/mnt_app; exit 1; }
 	@sudo umount efi-qemu/mnt_app
 	@echo "Added EFI app to the disk image."
 
@@ -113,3 +113,9 @@ clean:
 	rm -r $(WORKSPACE)/Build
 	rm -r $(WORKSPACE)/Conf
 	rm -r $(WORKSPACE)/efi-qemu
+
+run:
+	@./ovmf.sh
+
+run-text:
+	@./ovmf.sh --nographic

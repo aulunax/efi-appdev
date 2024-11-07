@@ -20,7 +20,7 @@
   FILE_GUID                      = 6987936E-ED34-44db-AE97-1FA5E4ED1234
   MODULE_TYPE                    = UEFI_APPLICATION
   VERSION_STRING                 = 0.01
-  ENTRY_POINT                    = UefiMain
+  ENTRY_POINT                    = UefiTestMain
 
 #
 #  This flag specifies whether HII resource section is generated into PE image.
@@ -50,6 +50,7 @@
   PrintLib
   UefiBootServicesTableLib
   MemoryAllocationLib
+  DebugLib
   
 [FeaturePcd]
   gEfiGameModulePkgTokenSpaceGuid.PcdHelloWorldPrintEnable   ## CONSUMES
@@ -58,3 +59,4 @@
   gEfiGameModulePkgTokenSpaceGuid.PcdHelloWorldPrintString   ## SOMETIMES_CONSUMES
   gEfiGameModulePkgTokenSpaceGuid.PcdHelloWorldPrintTimes    ## SOMETIMES_CONSUMES
   gEfiGameModulePkgTokenSpaceGuid.PcdTestTimes               ## SOMETIMES_CONSUMES
+
