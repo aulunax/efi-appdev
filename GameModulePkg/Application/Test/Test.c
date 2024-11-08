@@ -46,10 +46,6 @@ UefiTestMain (
     UINT32 SubFramesCounter;
     EFI_STATUS Status;
 
-    // Allocate the buffer for the output
-    CHAR16 Buffer[40];
-
-    DEBUG ((EFI_D_INFO, "My Entry point: 0x%08x\r\n", (CHAR16*)UefiTestMain )  );
 
     // Create a timer event
     Status = gBS->CreateEvent(EVT_TIMER, TPL_NOTIFY, NULL, NULL, &FrameTimerEvent);
@@ -58,8 +54,10 @@ UefiTestMain (
         return Status;
     }
 
+    
+
     // Set the timer to trigger in 1/30th of a second (about 33.33 milliseconds)
-    Status = gBS->SetTimer(FrameTimerEvent, TimerPeriodic, 166666);
+    Status = gBS->SetTimer(FrameTimerEvent, TimerPeriodic, 10000000 / PcdGet32(PcdTestFramerate));
     if (EFI_ERROR(Status)) {
         Print(L"Failed to set timer: %r\n", Status);
         gBS->CloseEvent(FrameTimerEvent);
@@ -76,6 +74,7 @@ UefiTestMain (
         Status = gBS->CheckEvent(FrameTimerEvent);
         if ((RETURN_STATUS)Status == EFI_NOT_READY) {
             SubFramesCounter++;
+            
             //
             // stuff here happens multiple times in a 'frame' so
             // do stuff like input handling here 
@@ -93,20 +92,17 @@ UefiTestMain (
         // so like rendering, game logic etc.
         //
 
-        DEBUG ((EFI_D_INFO,"Frame finished."));
+        // DEBUG ((EFI_D_INFO,"Frame finished."));
 
-        UnicodeSPrint(Buffer, 
-                      sizeof(Buffer), 
-                      L"Frame: %d, Subframes: %d", 
-                      FrameCounter + 1,
-                      SubFramesCounter + 1);
-
-        Print(L"%s\n", Buffer);
+        Print(L"Frame: %d, Subframes: %d\n", 
+              FrameCounter + 1,
+              SubFramesCounter + 1);
         SubFramesCounter = 0;
         FrameCounter++;
     }
 
-    Print(L"My Entry point: 0x%08x\r\n", (CHAR16*)UefiTestMain ) ;
+    // Test Debug statement
+    DEBUG ((EFI_D_INFO, "My Entry point: 0x%08x\r\n", (CHAR16*)UefiTestMain ));
 
 
     // Clean up and close the timer event

@@ -59,4 +59,5 @@
   gEfiGameModulePkgTokenSpaceGuid.PcdHelloWorldPrintString   ## SOMETIMES_CONSUMES
   gEfiGameModulePkgTokenSpaceGuid.PcdHelloWorldPrintTimes    ## SOMETIMES_CONSUMES
   gEfiGameModulePkgTokenSpaceGuid.PcdTestTimes               ## SOMETIMES_CONSUMES
+  gEfiGameModulePkgTokenSpaceGuid.PcdTestFramerate           ## SOMETIMES_CONSUMES
 
