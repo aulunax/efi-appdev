@@ -8,6 +8,12 @@
   PACKAGE_GUID                   = fa452691-f078-48f8-823f-0f70148bbcb2
   PACKAGE_VERSION                = 0.01
 
+[Includes]
+  Include
+
+[LibraryClasses]
+  GameGraphicsLib|GameModulePkg/Include/Library/GameGraphicsLib.h
+
 [PcdsFeatureFlag]
   ## Indicates if HelloWorld Application will print the verbose information.
   #  This PCD is a sample to explain FeatureFlag PCD usage.<BR><BR>

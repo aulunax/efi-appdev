@@ -11,6 +11,7 @@
 #include <Library/PrintLib.h>
 #include <Library/MemoryAllocationLib.h>
 #include <Library/DebugLib.h>
+#include <Library/GameGraphicsLib.h>
 
 
 //
@@ -45,6 +46,8 @@ UefiTestMain (
     UINT32 FrameCounter;
     UINT32 SubFramesCounter;
     EFI_STATUS Status;
+
+
 
 
     // Create a timer event
@@ -100,6 +103,7 @@ UefiTestMain (
         SubFramesCounter = 0;
         FrameCounter++;
     }
+    MyLibraryFunction();
 
     // Test Debug statement
     DEBUG ((EFI_D_INFO, "My Entry point: 0x%08x\r\n", (CHAR16*)UefiTestMain ));

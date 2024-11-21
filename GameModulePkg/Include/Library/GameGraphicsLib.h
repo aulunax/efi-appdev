@@ -1,0 +1,10 @@
+#ifndef _GAME_GRAPHICS_LIBRARY_H_
+#define _GAME_GRAPHICS_LIBRARY_H_
+
+VOID
+EFIAPI
+MyLibraryFunction (
+  VOID
+  );
+
+#endif // _GAME_GRAPHICS_LIBRARY_H_

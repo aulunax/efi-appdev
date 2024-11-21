@@ -112,9 +112,13 @@
   DebugLib|MdePkg/Library/UefiDebugLibStdErr/UefiDebugLibStdErr.inf
   FileHandleLib|MdePkg/Library/UefiFileHandleLib/UefiFileHandleLib.inf
 
+  # Custom Libs
+  GameGraphicsLib|GameModulePkg/Library/GameGraphicsLib/GameGraphicsLib.inf
+
 [Components]
   GameModulePkg/Application/HelloWorld/HelloWorld.inf
   GameModulePkg/Application/Test/Test.inf
+  GameModulePkg/Library/GameGraphicsLib/GameGraphicsLib.inf
 #  GameModulePkg/Application/Tetris/Tetris.inf
 
 

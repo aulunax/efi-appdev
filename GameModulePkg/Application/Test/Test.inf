@@ -51,6 +51,7 @@
   UefiBootServicesTableLib
   MemoryAllocationLib
   DebugLib
+  GameGraphicsLib
   
 [FeaturePcd]
   gEfiGameModulePkgTokenSpaceGuid.PcdHelloWorldPrintEnable   ## CONSUMES
