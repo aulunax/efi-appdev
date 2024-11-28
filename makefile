@@ -63,10 +63,10 @@ create_conf_dir:
 build_basetools: check-dependencies
 	@. $(WORKSPACE)/edk2/edksetup.sh && cd edk2 && $(MAKE) -C BaseTools
 
-build-app: create_conf_dir check-dependencies
+build-app: build_basetools create_conf_dir check-dependencies
 	@. $(WORKSPACE)/edk2/edksetup.sh && cd Conf && build -a $(TARGET_ARCH) -t $(TOOL_CHAIN_TAG) -p $(GAMEMODULE_ACTIVE_PLATFORM) -Y COMPILE_INFO -y BuildReport.log
 
-build-ovmf: create_conf_dir check-dependencies
+build-ovmf: build_basetools create_conf_dir check-dependencies
 	@if [ -f "$(WORKSPACE)/Build/Ovmf$(TARGET_ARCH)/$(BUILD_TARGET)_$(TOOL_CHAIN_TAG)/FV/OVMF.fd" ]; then \
 		echo "Skipping build-ovmf: $(WORKSPACE)/Build/Ovmf$(TARGET_ARCH)/$(BUILD_TARGET)_$(TOOL_CHAIN_TAG)/FV/OVMF.fd already exists."; \
 	else \
