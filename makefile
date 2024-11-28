@@ -61,7 +61,13 @@ create_conf_dir:
 	fi
 
 build_basetools: check-dependencies
-	@. $(WORKSPACE)/edk2/edksetup.sh && cd edk2 && $(MAKE) -C BaseTools
+	@echo "Starting BaseTools build..."
+	@if [ -f "$(WORKSPACE)/edk2/BaseTools/Source/C/bin/BrotliCompress" ]; then \
+		echo "BaseTools build already completed. Ignoring..."; \
+	else \
+		echo "Build not done yet. Running make..."; \
+		. $(WORKSPACE)/edk2/edksetup.sh && cd edk2 && $(MAKE) -C BaseTools; \
+	fi 
 
 build-app: build_basetools create_conf_dir check-dependencies
 	@. $(WORKSPACE)/edk2/edksetup.sh && cd Conf && build -a $(TARGET_ARCH) -t $(TOOL_CHAIN_TAG) -p $(GAMEMODULE_ACTIVE_PLATFORM) -Y COMPILE_INFO -y BuildReport.log
