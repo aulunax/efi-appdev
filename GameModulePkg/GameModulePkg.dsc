@@ -118,6 +118,7 @@
 [Components]
   GameModulePkg/Application/HelloWorld/HelloWorld.inf
   GameModulePkg/Application/Test/Test.inf
+  GameModulePkg/Application/GraphicsLibTest/GraphicsLibTest.inf
   GameModulePkg/Library/GameGraphicsLib/GameGraphicsLib.inf
 #  GameModulePkg/Application/Tetris/Tetris.inf
 

@@ -1,10 +1,44 @@
 #ifndef _GAME_GRAPHICS_LIBRARY_H_
 #define _GAME_GRAPHICS_LIBRARY_H_
 
+
+// GAME_GRAPHICS_LIB_DEV
+typedef struct
+{
+  EFI_GRAPHICS_OUTPUT_PROTOCOL *GraphicsOutput;
+  EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL SimpleTextOutput;
+  EFI_SIMPLE_TEXT_OUTPUT_MODE SimpleTextOutputMode;
+  EFI_GRAPHICS_OUTPUT_BLT_PIXEL *LineBuffer;
+} GAME_GRAPHICS_LIB_DEV;
+
 VOID
 EFIAPI
 MyLibraryFunction (
   VOID
   );
+
+EFI_STATUS
+EFIAPI
+PrintModeQueryInfo(
+    IN EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *ModeInfo);
+
+EFI_STATUS
+EFIAPI
+EnableGraphicMode(
+    IN OUT GAME_GRAPHICS_LIB_DEV *Devices
+    );
+
+EFI_STATUS
+EFIAPI
+DisableGraphicMode(
+    IN GAME_GRAPHICS_LIB_DEV *Devices
+    );
+
+EFI_STATUS
+EFIAPI
+DrawSquare(
+    IN GAME_GRAPHICS_LIB_DEV *Devices,
+    IN INT32 x,
+    IN INT32 y);
 
 #endif // _GAME_GRAPHICS_LIBRARY_H_

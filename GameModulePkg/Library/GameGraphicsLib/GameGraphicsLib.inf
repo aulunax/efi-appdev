@@ -13,6 +13,12 @@
   MdePkg/MdePkg.dec
   GameModulePkg/GameModulePkg.dec
 
+[Protocols]
+  gEfiSimpleTextOutProtocolGuid                 ## BY_START
+  gEfiGraphicsOutputProtocolGuid                ## TO_START
+  gEfiUgaDrawProtocolGuid                       ## TO_START
+
+
 [LibraryClasses]
   DebugLib
   BaseLib
