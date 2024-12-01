@@ -68,13 +68,32 @@ PrintModeQueryInfo(
 
 EFI_STATUS
 EFIAPI
+PrintGraphicsOutputProtocolMode(EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE *Mode)
+{
+  if (Mode == NULL)
+  {
+    DEBUG((DEBUG_ERROR, "Invalid EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE pointer (NULL).\n"));
+    return EFI_ABORTED;
+  }
+
+  DEBUG((DEBUG_INFO, "EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE:\n"));
+  DEBUG((DEBUG_INFO, "  MaxMode: %u\n", Mode->MaxMode));
+  DEBUG((DEBUG_INFO, "  Current Mode: %u\n", Mode->Mode));
+  DEBUG((DEBUG_INFO, "  SizeOfInfo: %lu bytes\n", Mode->SizeOfInfo));
+  DEBUG((DEBUG_INFO, "  FrameBufferBase: 0x%016lx\n", Mode->FrameBufferBase));
+  DEBUG((DEBUG_INFO, "  FrameBufferSize: %lu bytes\n", Mode->FrameBufferSize));
+
+  PrintModeQueryInfo(Mode->Info);
+
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS
+EFIAPI
 EnableGraphicMode(
     IN OUT GAME_GRAPHICS_LIB_DEV* Devices)
 {
   EFI_STATUS Status;
-  UINT32 ModeNumber = 0;
-  UINTN SizeOfInfo = 0;
-  EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* Info;
 
   Status = gBS->LocateProtocol(&gEfiGraphicsOutputProtocolGuid, NULL, (VOID **)&Devices->GraphicsOutput);
   if (EFI_ERROR(Status))
@@ -82,17 +101,7 @@ EnableGraphicMode(
     return Status;
   }
 
-  Status = Devices->GraphicsOutput->QueryMode(
-      Devices->GraphicsOutput,
-      ModeNumber,
-      &SizeOfInfo,
-      &Info);
-  if (EFI_ERROR(Status))
-  {
-    return Status;
-  }
-
-  Status = PrintModeQueryInfo(Info);
+  Status = PrintGraphicsOutputProtocolMode(Devices->GraphicsOutput->Mode);
   if (EFI_ERROR(Status))
   {
     return Status;
@@ -113,8 +122,10 @@ EFI_STATUS
 EFIAPI
 DrawSquare(
     IN GAME_GRAPHICS_LIB_DEV *Devices,
-    IN INT32 x,
-    IN INT32 y)
+    IN INT32                  x,
+    IN INT32                  y,
+    IN INT32                  HorizontalSize,
+    IN INT32                  VerticalSize)
 {
   return EFI_SUCCESS;
 }

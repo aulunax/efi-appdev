@@ -6,10 +6,13 @@
 typedef struct
 {
   EFI_GRAPHICS_OUTPUT_PROTOCOL *GraphicsOutput;
-  EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL SimpleTextOutput;
-  EFI_SIMPLE_TEXT_OUTPUT_MODE SimpleTextOutputMode;
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL *LineBuffer;
 } GAME_GRAPHICS_LIB_DEV;
+
+typedef struct
+{
+  
+} GAME_GRAPHICS_LIB_DEVA;
 
 VOID
 EFIAPI
@@ -24,9 +27,13 @@ PrintModeQueryInfo(
 
 EFI_STATUS
 EFIAPI
+PrintGraphicsOutputProtocolMode(
+   IN EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE *Mode);
+
+EFI_STATUS
+EFIAPI
 EnableGraphicMode(
-    IN OUT GAME_GRAPHICS_LIB_DEV *Devices
-    );
+    IN OUT GAME_GRAPHICS_LIB_DEV *Devices);
 
 EFI_STATUS
 EFIAPI
@@ -39,6 +46,8 @@ EFIAPI
 DrawSquare(
     IN GAME_GRAPHICS_LIB_DEV *Devices,
     IN INT32 x,
-    IN INT32 y);
+    IN INT32 y,
+    IN INT32 HorizontalSize,
+    IN INT32 VerticalSize);
 
 #endif // _GAME_GRAPHICS_LIBRARY_H_
