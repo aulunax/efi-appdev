@@ -30,6 +30,16 @@ typedef struct
   UINT32 VerticalCells;
 } GAME_GRAPHICS_LIB_GRID;
 
+// Grid cell pattern data structure
+// This is used to store the pattern of the cell in the grid
+// Currently unused
+typedef struct
+{
+  UINT32 SizeX;
+  UINT32 SizeY;
+  EFI_GRAPHICS_OUTPUT_BLT_PIXEL *Pattern;
+} GAME_GRAPHICS_LIB_GRID_CELL_PATTERN;
+
 VOID
 EFIAPI
 MyLibraryFunction (
@@ -136,6 +146,17 @@ FillCellInGrid(
     IN EFI_GRAPHICS_OUTPUT_BLT_PIXEL *Color
     );
 
+
+/// @brief Clears the grid by painting all cells black
+/// @param Data The data structure that is used to store the library variables
+/// @param Grid The grid data structure that will be cleared 
+/// @return EFI_SUCCESS if the function executed successfully, otherwise an error code. 
+EFI_STATUS
+EFIAPI
+ClearGrid(
+    IN GAME_GRAPHICS_LIB_DATA *Data,
+    IN GAME_GRAPHICS_LIB_GRID *Grid
+    );
 
 /// @brief Draws text on the screen at specific coordinates
 /// @param Data The data structure that is used to store the library variables

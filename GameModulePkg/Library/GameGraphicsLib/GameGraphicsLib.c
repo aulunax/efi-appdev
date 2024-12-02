@@ -201,17 +201,8 @@ EFIAPI
 ClearScreen(
     IN GAME_GRAPHICS_LIB_DATA *Data) 
 {
-  EFI_STATUS Status;
-
   // Filling the buffer with zeros (black)
   SetMem(Data->BackBuffer, Data->SizeOfBackBuffer, 0);
-
-  // Updating the video buffer immediately
-  Status = UpdateVideoBuffer(Data);
-  if (EFI_ERROR(Status))
-  {
-    return Status;
-  }
 
   return EFI_SUCCESS;
 }

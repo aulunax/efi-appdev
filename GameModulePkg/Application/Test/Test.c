@@ -42,75 +42,96 @@ UefiTestMain (
   IN EFI_SYSTEM_TABLE  *SystemTable
   )
 {
-    EFI_EVENT FrameTimerEvent;
-    UINT32 FrameCounter;
-    UINT32 SubFramesCounter;
-    EFI_STATUS Status;
+  EFI_EVENT FrameTimerEvent;
+  UINT32 FrameCounter;
+  UINT32 SubFramesCounter;
+  EFI_STATUS Status;
+  GAME_GRAPHICS_LIB_DATA GraphicsLibData;
+  EFI_GRAPHICS_OUTPUT_BLT_PIXEL Red = {0, 0, 255, 0};
 
+  // Create a timer event
+  Status = gBS->CreateEvent(EVT_TIMER, TPL_NOTIFY, NULL, NULL, &FrameTimerEvent);
+  if (EFI_ERROR(Status)) {
+      Print(L"Failed to create timer event: %r\n", Status);
+      return Status;
+  }
 
+  
 
+  // Set the timer to trigger in 1/30th of a second (about 33.33 milliseconds)
+  Status = gBS->SetTimer(FrameTimerEvent, TimerPeriodic, 10000000 / PcdGet32(PcdTestFramerate));
+  if (EFI_ERROR(Status)) {
+      Print(L"Failed to set timer: %r\n", Status);
+      gBS->CloseEvent(FrameTimerEvent);
+      return Status;
+  }
 
-    // Create a timer event
-    Status = gBS->CreateEvent(EVT_TIMER, TPL_NOTIFY, NULL, NULL, &FrameTimerEvent);
-    if (EFI_ERROR(Status)) {
-        Print(L"Failed to create timer event: %r\n", Status);
-        return Status;
+  Status = InitializeGraphicMode(&GraphicsLibData);
+  if (Status != EFI_SUCCESS)
+  {
+    DEBUG((EFI_D_ERROR, "Failed to enable graphic mode.\n"));
+    return Status;
+  }
+
+  ClearScreen(&GraphicsLibData);
+  UpdateVideoBuffer(&GraphicsLibData);
+
+  FrameCounter = 0;
+  SubFramesCounter = 0;
+  // Loop to perform the operation at constant intervals
+  // This will be smth like a main game loop
+  while (FrameCounter < PcdGet32(PcdTestTimes)) {
+
+    // This is timer for checking whether its time to finish the frame
+    Status = gBS->CheckEvent(FrameTimerEvent);
+    if ((RETURN_STATUS)Status == EFI_NOT_READY) {
+      SubFramesCounter++;
+      
+      //
+      // stuff here happens multiple times in a 'frame' so
+      // do stuff like input handling here 
+      //
+      continue;
+    }
+    else if (EFI_ERROR(Status)) {
+      DEBUG((EFI_D_ERROR, "Failed to check timer event: %r\n", Status));
+      gBS->CloseEvent(FrameTimerEvent);
+      return Status;
     }
 
-    
+    //
+    // Here goes stuff that happens once during a frame,
+    // so like rendering, game logic etc.
+    //
+    ClearScreen(&GraphicsLibData);
 
-    // Set the timer to trigger in 1/30th of a second (about 33.33 milliseconds)
-    Status = gBS->SetTimer(FrameTimerEvent, TimerPeriodic, 10000000 / PcdGet32(PcdTestFramerate));
-    if (EFI_ERROR(Status)) {
-        Print(L"Failed to set timer: %r\n", Status);
-        gBS->CloseEvent(FrameTimerEvent);
-        return Status;
+    Status = DrawRectangle(
+        &GraphicsLibData,
+        100+FrameCounter*10, 100,
+        100, 50,
+        &Red);
+    if (Status != EFI_SUCCESS)
+    {
+      DEBUG((EFI_D_ERROR, "Failed to draw rectangle.\n"));
+      return Status;
     }
 
-    FrameCounter = 0;
+    UpdateVideoBuffer(&GraphicsLibData);
+
+    // DEBUG ((EFI_D_INFO,"Frame finished."));
+    DEBUG ((EFI_D_INFO, "Frame: %d, Subframes: %d\n", 
+          FrameCounter + 1,
+          SubFramesCounter + 1));
     SubFramesCounter = 0;
-    // Loop to perform the operation at constant intervals
-    // This will be smth like a main game loop
-    while (FrameCounter < PcdGet32(PcdTestTimes)) {
+    FrameCounter++;
+  }
 
-        // This is timer for checking whether its time to finish the frame
-        Status = gBS->CheckEvent(FrameTimerEvent);
-        if ((RETURN_STATUS)Status == EFI_NOT_READY) {
-            SubFramesCounter++;
-            
-            //
-            // stuff here happens multiple times in a 'frame' so
-            // do stuff like input handling here 
-            //
-            continue;
-        }
-        else if (EFI_ERROR(Status)) {
-            Print(L"Failed to check timer event: %r\n", Status);
-            gBS->CloseEvent(FrameTimerEvent);
-            return Status;
-        }
+  ClearScreen(&GraphicsLibData);
+  UpdateVideoBuffer(&GraphicsLibData);
 
-        //
-        // Here goes stuff that happens once during a frame,
-        // so like rendering, game logic etc.
-        //
+  // Clean up
+  gBS->CloseEvent(FrameTimerEvent);
+  FinishGraphicMode(&GraphicsLibData);
 
-        // DEBUG ((EFI_D_INFO,"Frame finished."));
-
-        Print(L"Frame: %d, Subframes: %d\n", 
-              FrameCounter + 1,
-              SubFramesCounter + 1);
-        SubFramesCounter = 0;
-        FrameCounter++;
-    }
-    MyLibraryFunction();
-
-    // Test Debug statement
-    DEBUG ((EFI_D_INFO, "My Entry point: 0x%08x\r\n", (CHAR16*)UefiTestMain ));
-
-
-    // Clean up and close the timer event
-    gBS->CloseEvent(FrameTimerEvent);
-
-    return EFI_SUCCESS;
+  return EFI_SUCCESS;
 }
