@@ -43,6 +43,7 @@ UefiGraphicsLibTestMain(
 {
     EFI_STATUS Status;
     GAME_GRAPHICS_LIB_DATA GraphicsLibData;
+    EFI_GRAPHICS_OUTPUT_BLT_PIXEL Red = {0, 0, 255, 0};
 
     MyLibraryFunction();
 
@@ -51,6 +52,44 @@ UefiGraphicsLibTestMain(
     {
         DEBUG((EFI_D_ERROR, "Failed to enable graphic mode.\n"));
         return Status;
+    }
+
+    Status = DrawRectangle(
+        &GraphicsLibData,
+        100, 100,
+        100, 50,
+        &Red);
+    if (Status != EFI_SUCCESS)
+    {
+      DEBUG((EFI_D_ERROR, "Failed to draw rectangle.\n"));
+      return Status;
+    }
+
+    Status = DrawRectangle(
+        &GraphicsLibData,
+        100, 300,
+        20, 2000,
+        &Red);
+    if (Status != EFI_SUCCESS)
+    {
+      DEBUG((EFI_D_ERROR, "Failed to draw rectangle.\n"));
+      return Status;
+    }
+
+    Status = UpdateVideoBuffer(&GraphicsLibData);
+    if (Status != EFI_SUCCESS)
+    {
+        DEBUG((EFI_D_ERROR, "Failed to update video buffer.\n"));
+      return Status;
+    }
+
+    gBS->Stall(3000000);
+
+    Status = ClearScreen(&GraphicsLibData);
+    if (Status != EFI_SUCCESS)
+    {
+      DEBUG((EFI_D_ERROR, "Failed to clear screen.\n"));
+      return Status;
     }
 
     Status = FinishGraphicMode(&GraphicsLibData);

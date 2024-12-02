@@ -62,22 +62,23 @@ FinishGraphicMode(
     IN OUT GAME_GRAPHICS_LIB_DATA *Data);
 
 
-/// @brief Not implemented yet
+/// @brief Draws a rectangle on the screen
 /// @param Data The data structure that is used to store the library variables
-/// @param x 
-/// @param y 
-/// @param HorizontalSize 
-/// @param VerticalSize 
+/// @param x Starting x coordinate of the rectangle
+/// @param y Starting y coordinate of the rectangle
+/// @param HorizontalSize Horizontal size of the rectangle
+/// @param VerticalSize Vertical size of the rectangle
 /// @return EFI_SUCCESS if the function executed successfully, otherwise an error code.
 EFI_STATUS
 EFIAPI
-DrawSquare(
+DrawRectangle(
     IN GAME_GRAPHICS_LIB_DATA *Data,
     IN INT32 x,
     IN INT32 y,
     IN INT32 HorizontalSize,
-    IN INT32 VerticalSize);
-
+    IN INT32 VerticalSize,
+    IN EFI_GRAPHICS_OUTPUT_BLT_PIXEL *Color
+    );
 
 /// @brief Clears the screen by painting it black
 /// @param Data The data structure that is used to store the library variables

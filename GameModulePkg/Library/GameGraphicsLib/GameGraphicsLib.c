@@ -162,14 +162,36 @@ FinishGraphicMode(
 
 EFI_STATUS
 EFIAPI
-DrawSquare(
+DrawRectangle(
     IN GAME_GRAPHICS_LIB_DATA *Data,
     IN INT32 x,
     IN INT32 y,
     IN INT32 HorizontalSize,
-    IN INT32 VerticalSize)
+    IN INT32 VerticalSize,
+    IN EFI_GRAPHICS_OUTPUT_BLT_PIXEL *Color)
 {
-  //EFI_STATUS Status;
+  if (Data == NULL || Color == NULL)
+  {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  if (x < 0 || y < 0 || x > Data->Screen.HorizontalResolution || y > Data->Screen.VerticalResolution)
+  {
+    DEBUG((DEBUG_ERROR, "DrawRectangle: Invalid coordinates. Coordinates out of screen. \n"));
+    return EFI_INVALID_PARAMETER;
+  }
+
+  for (INT32 i = 0; i < VerticalSize; i++)
+  {
+    for (INT32 j = 0; j < HorizontalSize; j++)
+    {
+      if (x + j >= Data->Screen.HorizontalResolution || y + i >= Data->Screen.VerticalResolution)
+      {
+        continue;
+      }
+      Data->BackBuffer[(y + i) * Data->Screen.HorizontalResolution + (x + j)] = *Color;
+    }
+  }
 
   return EFI_SUCCESS;
 }
