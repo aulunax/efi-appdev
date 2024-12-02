@@ -35,13 +35,6 @@ fs0:
 ApplicationName.efi
 ```
 
-'Test' is the default app to be copied to QEMU disk. You can change that by passing <b>EFI_APP=AppName</b> to make. 
-<br/>
-Example:
-```sh
-make rebuild EFI_APP=Tetris
-```
-
 ## Sources
 - https://blog.3mdeb.com/2015/2015-11-21-uefi-application-development-in-ovmf/
 - https://github.com/tianocore/tianocore.github.io/wiki/
