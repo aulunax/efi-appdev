@@ -3,6 +3,8 @@
 #include <Protocol/GraphicsOutput.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/GameGraphicsLib.h>
+#include <Library/BaseMemoryLib.h>
+#include <Library/MemoryAllocationLib.h>
 
 VOID
 EFIAPI
@@ -83,25 +85,57 @@ PrintGraphicsOutputProtocolMode(EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE *Mode)
   DEBUG((DEBUG_INFO, "  FrameBufferBase: 0x%016lx\n", Mode->FrameBufferBase));
   DEBUG((DEBUG_INFO, "  FrameBufferSize: %lu bytes\n", Mode->FrameBufferSize));
 
-  PrintModeQueryInfo(Mode->Info);
+  for (INT32 i = 0; i < Mode->MaxMode; i++) 
+  {
+    DEBUG((EFI_D_INFO, "Mode number: (%d)\n", i));
+    PrintModeQueryInfo(Mode->Info);
+  }
 
   return EFI_SUCCESS;
 }
 
 EFI_STATUS
 EFIAPI
-EnableGraphicMode(
-    IN OUT GAME_GRAPHICS_LIB_DEV* Devices)
+InitializeGraphicMode(
+    IN OUT GAME_GRAPHICS_LIB_DATA *Data)
 {
   EFI_STATUS Status;
 
-  Status = gBS->LocateProtocol(&gEfiGraphicsOutputProtocolGuid, NULL, (VOID **)&Devices->GraphicsOutput);
+  Status = gBS->LocateProtocol(
+      &gEfiGraphicsOutputProtocolGuid,
+      NULL,
+      (VOID **)&Data->GraphicsOutput);
   if (EFI_ERROR(Status))
   {
     return Status;
   }
 
-  Status = PrintGraphicsOutputProtocolMode(Devices->GraphicsOutput->Mode);
+  Status = PrintGraphicsOutputProtocolMode(
+      Data->GraphicsOutput->Mode);
+  if (EFI_ERROR(Status))
+  {
+    return Status;
+  }
+
+  Data->Screen.HorizontalResolution = Data->GraphicsOutput->Mode->Info->HorizontalResolution;
+  Data->Screen.VerticalResolution = Data->GraphicsOutput->Mode->Info->VerticalResolution;
+
+  Data->SizeOfBackBuffer = 
+      Data->Screen.HorizontalResolution * Data->Screen.VerticalResolution * sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL);
+
+  // Allocating memory for the buffer
+  Status = gBS->AllocatePool(
+      EfiBootServicesData, 
+      Data->SizeOfBackBuffer, 
+      (VOID **)&Data->BackBuffer
+      );
+  if (EFI_ERROR(Status))
+  {
+    DEBUG((DEBUG_ERROR, "Failed to allocate BackBuffer: %r\n", Status));
+    return Status;
+  }
+
+  Status = ClearScreen(Data);
   if (EFI_ERROR(Status))
   {
     return Status;
@@ -112,20 +146,75 @@ EnableGraphicMode(
 
 EFI_STATUS
 EFIAPI
-DisableGraphicMode(
-    IN GAME_GRAPHICS_LIB_DEV *Devices)
+FinishGraphicMode(
+    IN OUT GAME_GRAPHICS_LIB_DATA *Data)
 {
+  EFI_STATUS Status;
+  Status = gBS->FreePool(Data->BackBuffer);
+  if (EFI_ERROR(Status))
+  {
+    DEBUG((DEBUG_ERROR, "Failed to free BackBuffer memory pool: %r\n", Status));
+    return Status;
+  }
+
   return EFI_SUCCESS;
 }
 
 EFI_STATUS
 EFIAPI
 DrawSquare(
-    IN GAME_GRAPHICS_LIB_DEV *Devices,
-    IN INT32                  x,
-    IN INT32                  y,
-    IN INT32                  HorizontalSize,
-    IN INT32                  VerticalSize)
+    IN GAME_GRAPHICS_LIB_DATA *Data,
+    IN INT32 x,
+    IN INT32 y,
+    IN INT32 HorizontalSize,
+    IN INT32 VerticalSize)
 {
+  //EFI_STATUS Status;
+
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS
+EFIAPI
+ClearScreen(
+    IN GAME_GRAPHICS_LIB_DATA *Data) 
+{
+  EFI_STATUS Status;
+
+  // Filling the buffer with zeros (black)
+  SetMem(Data->BackBuffer, Data->SizeOfBackBuffer, 0);
+
+  // Updating the video buffer immediately
+  Status = UpdateVideoBuffer(Data);
+  if (EFI_ERROR(Status))
+  {
+    return Status;
+  }
+
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS
+EFIAPI
+UpdateVideoBuffer(
+    IN GAME_GRAPHICS_LIB_DATA *Data) 
+{
+  EFI_STATUS Status;
+
+  Status = Data->GraphicsOutput->Blt(
+      Data->GraphicsOutput,
+      Data->BackBuffer,
+      EfiBltBufferToVideo,
+      0, 0,
+      0, 0,
+      Data->Screen.HorizontalResolution,
+      Data->Screen.VerticalResolution,
+      0);
+  if (EFI_ERROR(Status))
+  {
+    DEBUG((DEBUG_ERROR, "UpdateVideoBuffer: Failed to update video buffer: %r\n", Status));
+    return Status;
+  }
+
   return EFI_SUCCESS;
 }

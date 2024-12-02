@@ -42,14 +42,20 @@ UefiGraphicsLibTestMain(
     IN EFI_SYSTEM_TABLE *SystemTable)
 {
     EFI_STATUS Status;
-    GAME_GRAPHICS_LIB_DEV GraphicsLibDev;
+    GAME_GRAPHICS_LIB_DATA GraphicsLibData;
 
     MyLibraryFunction();
 
-    Status = EnableGraphicMode(&GraphicsLibDev);
+    Status = InitializeGraphicMode(&GraphicsLibData);
     if (Status != EFI_SUCCESS)
     {
         DEBUG((EFI_D_ERROR, "Failed to enable graphic mode.\n"));
+        return Status;
+    }
+
+    Status = FinishGraphicMode(&GraphicsLibData);
+    if (Status != EFI_SUCCESS) {
+        DEBUG((EFI_D_ERROR, "Failed to disable graphic mode.\n"));
         return Status;
     }
 
