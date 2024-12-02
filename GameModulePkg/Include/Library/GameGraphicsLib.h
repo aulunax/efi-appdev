@@ -2,13 +2,14 @@
 #define _GAME_GRAPHICS_LIBRARY_H_
 
 
-// GAME_GRAPHICS_LIB_DATA
+// Screen data structure
 typedef struct
 {
   UINT32 HorizontalResolution;
   UINT32 VerticalResolution;
 } GAME_GRAPHICS_LIB_SCREEN_DATA;
 
+// Library data structure
 typedef struct
 {
   EFI_GRAPHICS_OUTPUT_PROTOCOL *GraphicsOutput;
@@ -18,6 +19,16 @@ typedef struct
 } GAME_GRAPHICS_LIB_DATA;
 
 
+// Grid data structure
+typedef struct
+{
+  UINT32 x;
+  UINT32 y;
+  UINT32 HorizontalSize;
+  UINT32 VerticalSize;
+  UINT32 HorizontalCells;
+  UINT32 VerticalCells;
+} GAME_GRAPHICS_LIB_GRID;
 
 VOID
 EFIAPI
@@ -96,5 +107,49 @@ EFI_STATUS
 EFIAPI
 UpdateVideoBuffer(
     IN GAME_GRAPHICS_LIB_DATA *Data);
+
+/// @brief Creates a grid with the specified number of cells and size of the cells
+/// @param Data The data structure that is used to store the library variables
+/// @param Grid The grid data structure that will be created
+/// @return EFI_SUCCESS if the function executed successfully, otherwise an error code.
+/// @note The grid abstracts from using DrawRectangle, allowing the user to color fill cells in the grid with use of FillCellInGrid
+EFI_STATUS
+EFIAPI
+CreateCustomGrid(
+    IN GAME_GRAPHICS_LIB_DATA *Data,
+    OUT GAME_GRAPHICS_LIB_GRID *Grid
+    );
+
+/// @brief Color fills a cell in the grid at the specified grid coordinates
+/// @param Data The data structure that is used to store the library variables
+/// @param Grid The grid data structure that will be used to fill the cell 
+/// @param x X coordinate of the cell in the grid 
+/// @param y Y coordinate of the cell in the grid 
+/// @return EFI_SUCCESS if the function executed successfully, otherwise an error code.
+EFI_STATUS
+EFIAPI
+FillCellInGrid(
+    IN GAME_GRAPHICS_LIB_DATA *Data,
+    IN GAME_GRAPHICS_LIB_GRID *Grid,
+    IN UINT32 x,
+    IN UINT32 y,
+    IN EFI_GRAPHICS_OUTPUT_BLT_PIXEL *Color
+    );
+
+
+/// @brief Draws text on the screen at specific coordinates
+/// @param Data The data structure that is used to store the library variables
+/// @param x X coordinate of the top left corner of the text 
+/// @param y Y coordinate of the top left corner of the text
+/// @param Text The text that will be drawn on the screen
+/// @return EFI_SUCCESS if the function executed successfully, otherwise an error code.
+/// @note Top left corner of the text is at the x, y coordinates
+EFI_STATUS
+EFIAPI
+DrawText(
+    IN GAME_GRAPHICS_LIB_DATA *Data,
+    IN UINT32 x,
+    IN UINT32 y,
+    IN CHAR16* Text);
 
 #endif // _GAME_GRAPHICS_LIBRARY_H_
