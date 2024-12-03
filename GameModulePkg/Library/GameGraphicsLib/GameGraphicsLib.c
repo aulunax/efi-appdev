@@ -452,7 +452,12 @@ DrawText(
 
   while (*Text != '\0')
   {
-    Status = DrawCharacter(Data, PosX, PosY, *Text, ForegroundColor, BackgroundColor);
+    Status = DrawCharacter(Data,
+                           PosX, PosY,
+                           *Text,
+                           ForegroundColor,
+                           BackgroundColor,
+                           SizeMultipiler);
     if (EFI_ERROR(Status))
     {
       DEBUG((DEBUG_ERROR, "DrawText: DrawCharacter failed: %r\n", Status));
