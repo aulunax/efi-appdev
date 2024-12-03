@@ -3,14 +3,14 @@
 #include <Protocol/GraphicsOutput.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/GameGraphicsLib.h>
+#include <Library/Font8x8.h>
 #include <Library/BaseMemoryLib.h>
 #include <Library/MemoryAllocationLib.h>
 
 VOID
-EFIAPI
-MyLibraryFunction (
-  VOID
-  )
+    EFIAPI
+    MyLibraryFunction(
+        VOID)
 {
   DEBUG((DEBUG_INFO, "MyLibraryFunction called\n"));
 }
@@ -18,7 +18,7 @@ MyLibraryFunction (
 EFI_STATUS
 EFIAPI
 PrintModeQueryInfo(
-    IN EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *ModeInfo) 
+    IN EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *ModeInfo)
 {
   if (ModeInfo == NULL)
   {
@@ -70,7 +70,8 @@ PrintModeQueryInfo(
 
 EFI_STATUS
 EFIAPI
-PrintGraphicsOutputProtocolMode(EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE *Mode)
+PrintGraphicsOutputProtocolMode(
+    EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE *Mode)
 {
   if (Mode == NULL)
   {
@@ -85,7 +86,7 @@ PrintGraphicsOutputProtocolMode(EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE *Mode)
   DEBUG((DEBUG_INFO, "  FrameBufferBase: 0x%016lx\n", Mode->FrameBufferBase));
   DEBUG((DEBUG_INFO, "  FrameBufferSize: %lu bytes\n", Mode->FrameBufferSize));
 
-  for (INT32 i = 0; i < Mode->MaxMode; i++) 
+  for (INT32 i = 0; i < Mode->MaxMode; i++)
   {
     DEBUG((EFI_D_INFO, "Mode number: (%d)\n", i));
     PrintModeQueryInfo(Mode->Info);
@@ -120,15 +121,14 @@ InitializeGraphicMode(
   Data->Screen.HorizontalResolution = Data->GraphicsOutput->Mode->Info->HorizontalResolution;
   Data->Screen.VerticalResolution = Data->GraphicsOutput->Mode->Info->VerticalResolution;
 
-  Data->SizeOfBackBuffer = 
+  Data->SizeOfBackBuffer =
       Data->Screen.HorizontalResolution * Data->Screen.VerticalResolution * sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL);
 
   // Allocating memory for the buffer
   Status = gBS->AllocatePool(
-      EfiBootServicesData, 
-      Data->SizeOfBackBuffer, 
-      (VOID **)&Data->BackBuffer
-      );
+      EfiBootServicesData,
+      Data->SizeOfBackBuffer,
+      (VOID **)&Data->BackBuffer);
   if (EFI_ERROR(Status))
   {
     DEBUG((DEBUG_ERROR, "Failed to allocate BackBuffer: %r\n", Status));
@@ -150,6 +150,7 @@ FinishGraphicMode(
     IN OUT GAME_GRAPHICS_LIB_DATA *Data)
 {
   EFI_STATUS Status;
+
   Status = gBS->FreePool(Data->BackBuffer);
   if (EFI_ERROR(Status))
   {
@@ -170,14 +171,14 @@ DrawRectangle(
     IN INT32 VerticalSize,
     IN EFI_GRAPHICS_OUTPUT_BLT_PIXEL *Color)
 {
-  if (Data == NULL || Color == NULL)
+  if ((Data == NULL) || (Color == NULL))
   {
     return EFI_INVALID_PARAMETER;
   }
 
-  if (x < 0 || y < 0 || x > Data->Screen.HorizontalResolution || y > Data->Screen.VerticalResolution)
+  if ((x < 0) || (y < 0) || (x > Data->Screen.HorizontalResolution) || (y > Data->Screen.VerticalResolution))
   {
-    DEBUG((DEBUG_ERROR, "DrawRectangle: Invalid coordinates. Coordinates out of screen. \n"));
+    // DEBUG((DEBUG_ERROR, "DrawRectangle: Invalid coordinates. Coordinates out of screen. \n"));
     return EFI_INVALID_PARAMETER;
   }
 
@@ -185,10 +186,11 @@ DrawRectangle(
   {
     for (INT32 j = 0; j < HorizontalSize; j++)
     {
-      if (x + j >= Data->Screen.HorizontalResolution || y + i >= Data->Screen.VerticalResolution)
+      if ((x + j >= Data->Screen.HorizontalResolution) || (y + i >= Data->Screen.VerticalResolution))
       {
         continue;
       }
+
       Data->BackBuffer[(y + i) * Data->Screen.HorizontalResolution + (x + j)] = *Color;
     }
   }
@@ -199,7 +201,7 @@ DrawRectangle(
 EFI_STATUS
 EFIAPI
 ClearScreen(
-    IN GAME_GRAPHICS_LIB_DATA *Data) 
+    IN GAME_GRAPHICS_LIB_DATA *Data)
 {
   // Filling the buffer with zeros (black)
   SetMem(Data->BackBuffer, Data->SizeOfBackBuffer, 0);
@@ -210,7 +212,7 @@ ClearScreen(
 EFI_STATUS
 EFIAPI
 UpdateVideoBuffer(
-    IN GAME_GRAPHICS_LIB_DATA *Data) 
+    IN GAME_GRAPHICS_LIB_DATA *Data)
 {
   EFI_STATUS Status;
 
@@ -218,8 +220,10 @@ UpdateVideoBuffer(
       Data->GraphicsOutput,
       Data->BackBuffer,
       EfiBltBufferToVideo,
-      0, 0,
-      0, 0,
+      0,
+      0,
+      0,
+      0,
       Data->Screen.HorizontalResolution,
       Data->Screen.VerticalResolution,
       0);
@@ -227,6 +231,235 @@ UpdateVideoBuffer(
   {
     DEBUG((DEBUG_ERROR, "UpdateVideoBuffer: Failed to update video buffer: %r\n", Status));
     return Status;
+  }
+
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS
+EFIAPI
+CreateCustomGrid(
+    IN OUT GAME_GRAPHICS_LIB_GRID *Grid,
+    IN UINT32 GridHorizontalSize,
+    IN UINT32 GridVerticalSize,
+    IN UINT32 HorizontalCellsCount,
+    IN UINT32 VerticalCellsCount,
+    IN EFI_GRAPHICS_OUTPUT_BLT_PIXEL *Bitmap OPTIONAL)
+{
+  if (Grid == NULL)
+  {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  Grid->HorizontalSize = GridHorizontalSize;
+  Grid->VerticalSize = GridVerticalSize;
+  Grid->HorizontalCellsCount = HorizontalCellsCount;
+  Grid->VerticalCellsCount = VerticalCellsCount;
+
+  if (Bitmap != NULL)
+  {
+    Grid->ColorsBitmap = Bitmap;
+  }
+  else
+  {
+    Grid->ColorsBitmap = AllocatePool(HorizontalCellsCount * VerticalCellsCount * sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL));
+    if (Grid->ColorsBitmap == NULL)
+    {
+      DEBUG((DEBUG_ERROR, "Failed to allocate ColorsBitmap memory pool.\n"));
+      return EFI_OUT_OF_RESOURCES;
+    }
+
+    // Filling the bitmap with zeros (black)
+    SetMem(Grid->ColorsBitmap, HorizontalCellsCount * VerticalCellsCount * sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL), 0);
+  }
+
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS
+EFIAPI
+DrawGrid(
+    IN GAME_GRAPHICS_LIB_DATA *Data,
+    IN GAME_GRAPHICS_LIB_GRID *Grid,
+    IN UINT32 x,
+    IN UINT32 y)
+{
+  UINT32 VerticalOffset = 0;
+  UINT32 HorizontalOffset = 0;
+  UINT32 CurrentCellHorizontalSize = 0;
+  UINT32 CurrentCellVerticalSize = 0;
+  UINT32 HorizontalRemainder = 0;
+  UINT32 VerticalRemainder = 0;
+
+  if ((Data == NULL) || (Grid == NULL))
+  {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  for (INT32 i = 0; i < Grid->VerticalCellsCount; i++)
+  {
+    CurrentCellVerticalSize = Grid->VerticalSize / Grid->VerticalCellsCount;
+    VerticalRemainder += Grid->VerticalSize % Grid->VerticalCellsCount;
+    if (VerticalRemainder >= Grid->VerticalCellsCount)
+    {
+      VerticalRemainder -= Grid->VerticalCellsCount;
+      CurrentCellVerticalSize++;
+    }
+    for (INT32 j = 0; j < Grid->HorizontalCellsCount; j++)
+    {
+      CurrentCellHorizontalSize = Grid->HorizontalSize / Grid->HorizontalCellsCount;
+      HorizontalRemainder += Grid->HorizontalSize % Grid->HorizontalCellsCount;
+      if (HorizontalRemainder >= Grid->HorizontalCellsCount)
+      {
+        HorizontalRemainder -= Grid->HorizontalCellsCount;
+        CurrentCellHorizontalSize++;
+      }
+
+      // Intentionally ignoring return status of DrawRectangle
+      // This allows for the grid to be fully drawn even if some cells are off screen
+      DrawRectangle(Data,
+                    x + HorizontalOffset,
+                    y + VerticalOffset,
+                    CurrentCellHorizontalSize,
+                    CurrentCellVerticalSize,
+                    &Grid->ColorsBitmap[i * Grid->HorizontalCellsCount + j]);
+
+      HorizontalOffset += CurrentCellHorizontalSize;
+    }
+    VerticalOffset += CurrentCellVerticalSize;
+    HorizontalOffset = 0;
+  }
+
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS
+EFIAPI
+FillCellInGrid(
+    IN GAME_GRAPHICS_LIB_GRID *Grid,
+    IN UINT32 x,
+    IN UINT32 y,
+    IN EFI_GRAPHICS_OUTPUT_BLT_PIXEL *Color)
+{
+  Grid->ColorsBitmap[y * Grid->HorizontalCellsCount + x] = *Color;
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS
+EFIAPI
+DeleteGrid(
+    IN GAME_GRAPHICS_LIB_GRID *Grid)
+{
+  if (Grid == NULL)
+  {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  if (Grid->ColorsBitmap != NULL)
+  {
+    FreePool(Grid->ColorsBitmap);
+  }
+
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS
+EFIAPI
+ClearGrid(
+    IN GAME_GRAPHICS_LIB_GRID *Grid)
+{
+  if (Grid == NULL)
+  {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  SetMem(Grid->ColorsBitmap, Grid->HorizontalCellsCount * Grid->VerticalCellsCount * sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL), 0);
+
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS
+EFIAPI
+DrawCharacter(
+    IN GAME_GRAPHICS_LIB_DATA *Data,
+    IN UINT32 x,
+    IN UINT32 y,
+    IN CHAR8 Character,
+    IN EFI_GRAPHICS_OUTPUT_BLT_PIXEL *ForegroundColor,
+    IN EFI_GRAPHICS_OUTPUT_BLT_PIXEL *BackgroundColor,
+    IN UINT32 SizeMultipiler)
+{
+  UINTN FontHeight = 8;
+  UINTN FontWidth = 8;
+  UINT32 CurrentX = x;
+  UINT32 CurrentY = y;
+  UINTN CurrentCharacter = (UINTN)Character;
+  DEBUG((DEBUG_ERROR, "DrawCharacter: xddxdxdxd. %c \n", Character));
+
+  for (UINTN row = 0; row < FontHeight; row++)
+  {
+    for (UINTN col = 0; col < FontWidth; col++)
+    {
+      if (CurrentY * Data->Screen.HorizontalResolution + CurrentX >= Data->SizeOfBackBuffer)
+      {
+        DEBUG((DEBUG_ERROR, "DrawCharacter: Coordinates out of screen. \n"));
+        return EFI_INVALID_PARAMETER;
+      }
+
+      if ((font8x8_basic[CurrentCharacter][row] >> col) & 0x1)
+      {
+        for (INTN i = 0; i < SizeMultipiler; i++)
+        {
+          for (INTN j = 0; j < SizeMultipiler; j++)
+          {
+            Data->BackBuffer[(CurrentY + i) * Data->Screen.HorizontalResolution + (CurrentX + j)] = *ForegroundColor;
+          }
+        }
+      }
+      else
+      {
+        for (INTN i = 0; i < SizeMultipiler; i++)
+        {
+          for (INTN j = 0; j < SizeMultipiler; j++)
+          {
+            Data->BackBuffer[(CurrentY + i) * Data->Screen.HorizontalResolution + (CurrentX + j)] = *BackgroundColor;
+          }
+        }
+      }
+      CurrentX += SizeMultipiler;
+    }
+    CurrentY += SizeMultipiler;
+    CurrentX = x;
+  }
+
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS
+EFIAPI
+DrawText(
+    IN GAME_GRAPHICS_LIB_DATA *Data,
+    IN UINT32 x,
+    IN UINT32 y,
+    IN CHAR8 *Text,
+    IN EFI_GRAPHICS_OUTPUT_BLT_PIXEL *ForegroundColor,
+    IN EFI_GRAPHICS_OUTPUT_BLT_PIXEL *BackgroundColor,
+    IN UINT32 SizeMultipiler)
+{
+  EFI_STATUS Status;
+  UINTN PosX = x;
+  UINTN PosY = y;
+
+  while (*Text != '\0')
+  {
+    Status = DrawCharacter(Data, PosX, PosY, *Text, ForegroundColor, BackgroundColor);
+    if (EFI_ERROR(Status))
+    {
+      DEBUG((DEBUG_ERROR, "DrawText: DrawCharacter failed: %r\n", Status));
+      return Status;
+    }
+    PosX += 8 * SizeMultipiler;
+    Text++;
   }
 
   return EFI_SUCCESS;
