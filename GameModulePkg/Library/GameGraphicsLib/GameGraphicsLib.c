@@ -7,14 +7,6 @@
 #include <Library/BaseMemoryLib.h>
 #include <Library/MemoryAllocationLib.h>
 
-VOID
-    EFIAPI
-    MyLibraryFunction(
-        VOID)
-{
-  DEBUG((DEBUG_INFO, "MyLibraryFunction called\n"));
-}
-
 EFI_STATUS
 EFIAPI
 PrintModeQueryInfo(
@@ -132,12 +124,6 @@ InitializeGraphicMode(
   if (EFI_ERROR(Status))
   {
     DEBUG((DEBUG_ERROR, "Failed to allocate BackBuffer: %r\n", Status));
-    return Status;
-  }
-
-  Status = ClearScreen(Data);
-  if (EFI_ERROR(Status))
-  {
     return Status;
   }
 
@@ -394,7 +380,6 @@ DrawCharacter(
   UINT32 CurrentX = x;
   UINT32 CurrentY = y;
   UINTN CurrentCharacter = (UINTN)Character;
-  DEBUG((DEBUG_ERROR, "DrawCharacter: xddxdxdxd. %c \n", Character));
 
   for (UINTN row = 0; row < FontHeight; row++)
   {

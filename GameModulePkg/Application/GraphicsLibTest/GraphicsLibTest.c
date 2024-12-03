@@ -44,8 +44,6 @@ UefiGraphicsLibTestMain(
   GAME_GRAPHICS_LIB_DATA GraphicsLibData;
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL Red = {0, 0, 255, 0};
 
-  MyLibraryFunction();
-
   Status = InitializeGraphicMode(&GraphicsLibData);
   if (Status != EFI_SUCCESS)
   {

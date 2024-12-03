@@ -1,46 +1,67 @@
 #ifndef _GAME_GRAPHICS_LIBRARY_H_
 #define _GAME_GRAPHICS_LIBRARY_H_
 
-// Screen data structure
+/// @file
+/// Game Graphics Library
+/// UEFI Graphics Output Protocol based library that provides functions to draw on the screen.
+///
+/// @section Initialization
+/// To use the library, the InitializeGraphicMode function must be called first, and the FinishGraphicMode function must be called after the library is no longer needed.
+///
+/// @section Drawing
+/// All drawing functions change the back buffer, which is then copied to the video buffer with UpdateVideoBuffer.
+/// Therefore to see the changes on the screen, UpdateVideoBuffer must be called after all the drawing functions are done.
+///
+/// @section Grid
+/// The library provides a grid data structure that allows for easy drawing of a colored grid on the screen.
+/// The grid is divided into cells, each cell can be colored with a specific color, described by the ColorsBitmap field.
+/// To create a grid, use CreateCustomGrid, to draw the grid on the screen, use DrawGrid, to fill a cell in the grid, use FillCellInGrid, and to delete the grid, use DeleteGrid.
+/// Important to note is the fact, that the grid has to be deleted after it is no longer needed, to free the memory allocated by the grid.
+///
+/// @section Text
+/// The library provides a function to draw a string of text on the screen. It uses a 8x8 font to draw each character.
+/// The bitmap of the font is located in the Font8x8.h file in the same directory as this file.
+
+/// @brief Data structure that stores the screen resolution
 typedef struct
 {
   UINT32 HorizontalResolution;
   UINT32 VerticalResolution;
 } GAME_GRAPHICS_LIB_SCREEN_DATA;
 
-// Library data structure
+/// @brief Data structure that stores the library variables
 typedef struct
 {
-  EFI_GRAPHICS_OUTPUT_PROTOCOL *GraphicsOutput;
-  EFI_GRAPHICS_OUTPUT_BLT_PIXEL *BackBuffer;
-  UINTN SizeOfBackBuffer;
-  GAME_GRAPHICS_LIB_SCREEN_DATA Screen;
+  EFI_GRAPHICS_OUTPUT_PROTOCOL *GraphicsOutput; // Graphics Output Protocol instance pointer
+  EFI_GRAPHICS_OUTPUT_BLT_PIXEL *BackBuffer;    // Back buffer that will be used to draw on the screen
+  UINTN SizeOfBackBuffer;                       // Size of the back buffer
+  GAME_GRAPHICS_LIB_SCREEN_DATA Screen;         // Screen data structure
 } GAME_GRAPHICS_LIB_DATA;
 
-// Grid data structure
+/// @brief Grid data structure that allows for easy drawing of a colored grid on the screen
+///
+/// The grid is divided into cells, each cell can be colored with a specific color,
+/// described by the ColorsBitmap field.
+///
+/// Related functions: CreateCustomGrid, DrawGrid, FillCellInGrid, DeleteGrid
 typedef struct
 {
-  UINT32 HorizontalSize;
-  UINT32 VerticalSize;
-  UINT32 HorizontalCellsCount;
-  UINT32 VerticalCellsCount;
-  EFI_GRAPHICS_OUTPUT_BLT_PIXEL *ColorsBitmap;
+  UINT32 HorizontalSize;                       // Total horizontal size of the grid
+  UINT32 VerticalSize;                         // Total vertical size of the grid
+  UINT32 HorizontalCellsCount;                 // Number of horizontal cells in the grid
+  UINT32 VerticalCellsCount;                   // Number of vertical cells in the grid
+  EFI_GRAPHICS_OUTPUT_BLT_PIXEL *ColorsBitmap; // Bitmap that stores the color of each cell in the grid
 } GAME_GRAPHICS_LIB_GRID;
 
-// Grid cell pattern data structure
-// This is used to store the pattern of the cell in the grid
-// Currently unused
+/// @brief Grid cell pattern data structure
+/// This is used to store the pattern of the cell in the grid
+/// Currently unused
 typedef struct
 {
   UINT32 SizeX;
   UINT32 SizeY;
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL *Pattern;
 } GAME_GRAPHICS_LIB_GRID_CELL_PATTERN;
-
-VOID
-    EFIAPI
-        MyLibraryFunction(
-            VOID);
 
 /// @brief Prints the information of the specific mode of the Graphics Output Protocol
 /// @param ModeInfo The mode information of the Graphics Output Protocol
@@ -58,10 +79,11 @@ EFIAPI
 PrintGraphicsOutputProtocolMode(
     IN EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE *Mode);
 
-/// @brief Sets up the library variables to be used in the library. Also clears the screen (paints it black)
+/// @brief Sets up the library variables to be used in the library.
 /// @param Data The data structure that will be used to store the library variables
 /// @return EFI_SUCCESS if the function executed successfully, otherwise an error code.
-/// @note This function must be called before any other function in the library. FinishGraphicMode must be called after the library is no longer needed.
+/// @note This function must be called before any other function in the library.
+/// @note FinishGraphicMode must be called after the library is no longer needed.
 EFI_STATUS
 EFIAPI
 InitializeGraphicMode(
@@ -76,10 +98,10 @@ EFIAPI
 FinishGraphicMode(
     IN OUT GAME_GRAPHICS_LIB_DATA *Data);
 
-/// @brief Draws a rectangle on the screen
+/// @brief Draws a color filled rectangle on the screen
 /// @param Data The data structure that is used to store the library variables
-/// @param x Starting x coordinate of the rectangle
-/// @param y Starting y coordinate of the rectangle
+/// @param x x coordinate of the top left corner of the rectangle
+/// @param y y coordinate of the top left corner of the rectangle
 /// @param HorizontalSize Horizontal size of the rectangle
 /// @param VerticalSize Vertical size of the rectangle
 /// @return EFI_SUCCESS if the function executed successfully, otherwise an error code.
@@ -112,13 +134,12 @@ UpdateVideoBuffer(
     IN GAME_GRAPHICS_LIB_DATA *Data);
 
 /// @brief Creates a grid with the specified number of cells and size of the cells
-/// @param Data The data structure that is used to store the library variables
 /// @param Grid The grid data structure that will be created
 /// @param GridHorizontalSize Horizontal size of the grid
 /// @param GridVerticalSize Vertical size of the grid
 /// @param HorizontalCellsCount Number of horizontal cells in the grid
 /// @param VerticalCellsCount Number of vertical cells in the grid
-/// @param Bitmap Optional bitmap that will be used to color fill the cells in the grid. If NULL, all cells will be black
+/// @param Bitmap Optional bitmap that will be used to color fill the cells in the grid. If NULL, a new bitmap is created with all cells colored black
 /// @return EFI_SUCCESS if the function executed successfully, otherwise an error code.
 /// @note The grid abstracts from using DrawRectangle, allowing the user to color fill cells in the grid with use of FillCellInGrid
 EFI_STATUS
@@ -135,6 +156,7 @@ CreateCustomGrid(
 /// @param Grid The grid data structure that will be used to fill the cell
 /// @param x X coordinate of the cell in the grid
 /// @param y Y coordinate of the cell in the grid
+/// @param Color The color that will be used to fill the cell
 /// @return EFI_SUCCESS if the function executed successfully, otherwise an error code.
 /// @note The grid has to be drawn again on the screen after the cell is filled to see the changes
 EFI_STATUS
