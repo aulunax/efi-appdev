@@ -34,7 +34,7 @@ typedef struct
 {
     EFI_GRAPHICS_OUTPUT_PROTOCOL *GraphicsOutput; // Graphics Output Protocol instance pointer
     EFI_GRAPHICS_OUTPUT_BLT_PIXEL *BackBuffer;    // Back buffer that will be used to draw on the screen
-    UINTN SizeOfBackBuffer;                       // Size of the back buffer
+    UINTN SizeOfBackBuffer;                       // Size of the back buffer in bytes
     GAME_GRAPHICS_LIB_SCREEN_DATA Screen;         // Screen data structure
 } GAME_GRAPHICS_LIB_DATA;
 

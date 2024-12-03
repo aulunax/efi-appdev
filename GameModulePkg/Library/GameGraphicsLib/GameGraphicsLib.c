@@ -103,6 +103,7 @@ InitializeGraphicMode(
     return Status;
   }
 
+  // Debug information about the current mode
   Status = PrintGraphicsOutputProtocolMode(
       Data->GraphicsOutput->Mode);
   if (EFI_ERROR(Status))
@@ -248,6 +249,8 @@ CreateCustomGrid(
   Grid->HorizontalCellsCount = HorizontalCellsCount;
   Grid->VerticalCellsCount = VerticalCellsCount;
 
+  // If a bitmap is provided, use it
+  // else create a new bitmap with all cells colored black
   if (Bitmap != NULL)
   {
     Grid->ColorsBitmap = Bitmap;
@@ -288,6 +291,8 @@ DrawGrid(
     return EFI_INVALID_PARAMETER;
   }
 
+  // Calculating the size of each cell using division with remainder,
+  // to not create unintended 1 pixel gaps
   for (INT32 i = 0; i < Grid->VerticalCellsCount; i++)
   {
     CurrentCellVerticalSize = Grid->VerticalSize / Grid->VerticalCellsCount;
@@ -398,14 +403,23 @@ DrawCharacter(
     return EFI_INVALID_PARAMETER;
   }
 
+  if (CurrentX < 0 || CurrentY < 0 ||
+      CurrentX >= Data->Screen.HorizontalResolution ||
+      CurrentY >= Data->Screen.VerticalResolution)
+  {
+    DEBUG((DEBUG_ERROR, "DrawCharacter: Coordinates out of screen bounds.\n"));
+    return EFI_INVALID_PARAMETER;
+  }
+
   for (UINTN BitmapRow = 0; BitmapRow < FontHeight; BitmapRow++)
   {
     for (UINTN BitmapColumn = 0; BitmapColumn < FontWidth; BitmapColumn++)
     {
-      if (CurrentY * Data->Screen.HorizontalResolution + CurrentX >= Data->SizeOfBackBuffer)
+      // If the pixel is out of screen bounds, skip it
+      if (CurrentX + SizeMultipiler >= Data->Screen.HorizontalResolution ||
+          CurrentY + SizeMultipiler >= Data->Screen.VerticalResolution)
       {
-        DEBUG((DEBUG_ERROR, "DrawCharacter: Coordinates out of screen. \n"));
-        return EFI_INVALID_PARAMETER;
+        continue;
       }
 
       // Using 8x8 font bitmap, we extract the bit of the current pixel
