@@ -25,17 +25,17 @@
 /// @brief Data structure that stores the screen resolution
 typedef struct
 {
-  UINT32 HorizontalResolution;
-  UINT32 VerticalResolution;
+    UINT32 HorizontalResolution;
+    UINT32 VerticalResolution;
 } GAME_GRAPHICS_LIB_SCREEN_DATA;
 
 /// @brief Data structure that stores the library variables
 typedef struct
 {
-  EFI_GRAPHICS_OUTPUT_PROTOCOL *GraphicsOutput; // Graphics Output Protocol instance pointer
-  EFI_GRAPHICS_OUTPUT_BLT_PIXEL *BackBuffer;    // Back buffer that will be used to draw on the screen
-  UINTN SizeOfBackBuffer;                       // Size of the back buffer
-  GAME_GRAPHICS_LIB_SCREEN_DATA Screen;         // Screen data structure
+    EFI_GRAPHICS_OUTPUT_PROTOCOL *GraphicsOutput; // Graphics Output Protocol instance pointer
+    EFI_GRAPHICS_OUTPUT_BLT_PIXEL *BackBuffer;    // Back buffer that will be used to draw on the screen
+    UINTN SizeOfBackBuffer;                       // Size of the back buffer
+    GAME_GRAPHICS_LIB_SCREEN_DATA Screen;         // Screen data structure
 } GAME_GRAPHICS_LIB_DATA;
 
 /// @brief Grid data structure that allows for easy drawing of a colored grid on the screen
@@ -46,11 +46,11 @@ typedef struct
 /// Related functions: CreateCustomGrid, DrawGrid, FillCellInGrid, DeleteGrid
 typedef struct
 {
-  UINT32 HorizontalSize;                       // Total horizontal size of the grid
-  UINT32 VerticalSize;                         // Total vertical size of the grid
-  UINT32 HorizontalCellsCount;                 // Number of horizontal cells in the grid
-  UINT32 VerticalCellsCount;                   // Number of vertical cells in the grid
-  EFI_GRAPHICS_OUTPUT_BLT_PIXEL *ColorsBitmap; // Bitmap that stores the color of each cell in the grid
+    UINT32 HorizontalSize;                       // Total horizontal size of the grid
+    UINT32 VerticalSize;                         // Total vertical size of the grid
+    UINT32 HorizontalCellsCount;                 // Number of horizontal cells in the grid
+    UINT32 VerticalCellsCount;                   // Number of vertical cells in the grid
+    EFI_GRAPHICS_OUTPUT_BLT_PIXEL *ColorsBitmap; // Bitmap that stores the color of each cell in the grid
 } GAME_GRAPHICS_LIB_GRID;
 
 /// @brief Grid cell pattern data structure
@@ -58,9 +58,9 @@ typedef struct
 /// Currently unused
 typedef struct
 {
-  UINT32 SizeX;
-  UINT32 SizeY;
-  EFI_GRAPHICS_OUTPUT_BLT_PIXEL *Pattern;
+    UINT32 SizeX;
+    UINT32 SizeY;
+    EFI_GRAPHICS_OUTPUT_BLT_PIXEL *Pattern;
 } GAME_GRAPHICS_LIB_GRID_CELL_PATTERN;
 
 /// @brief Prints the information of the specific mode of the Graphics Output Protocol

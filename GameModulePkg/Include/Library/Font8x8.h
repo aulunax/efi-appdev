@@ -20,9 +20,14 @@
 
 #include <Uefi.h>
 
-// Constant: font8x8_basic
+#define FONT_HORIZONTAL_SIZE 8
+#define FONT_VERTICAL_SIZE 8
+
+#define FONT_CHARACTER_COUNT 128
+
+// Constant: gFont8x8_basic
 // Contains an 8x8 font map for unicode points U+0000 - U+007F (basic latin)
-CHAR8 font8x8_basic[128][8] = {
+CHAR8 gFont8x8_basic[FONT_CHARACTER_COUNT][8] = {
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, // U+0000 (nul)
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, // U+0001
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, // U+0002

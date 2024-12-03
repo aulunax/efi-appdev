@@ -114,7 +114,9 @@ InitializeGraphicMode(
   Data->Screen.VerticalResolution = Data->GraphicsOutput->Mode->Info->VerticalResolution;
 
   Data->SizeOfBackBuffer =
-      Data->Screen.HorizontalResolution * Data->Screen.VerticalResolution * sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL);
+      Data->Screen.HorizontalResolution *
+      Data->Screen.VerticalResolution *
+      sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL);
 
   // Allocating memory for the buffer
   Status = gBS->AllocatePool(
@@ -162,9 +164,11 @@ DrawRectangle(
     return EFI_INVALID_PARAMETER;
   }
 
-  if ((x < 0) || (y < 0) || (x > Data->Screen.HorizontalResolution) || (y > Data->Screen.VerticalResolution))
+  // Checking if the starting point of the rectangle is within the screen
+  if ((x < 0) || (y < 0) ||
+      (x > Data->Screen.HorizontalResolution) ||
+      (y > Data->Screen.VerticalResolution))
   {
-    // DEBUG((DEBUG_ERROR, "DrawRectangle: Invalid coordinates. Coordinates out of screen. \n"));
     return EFI_INVALID_PARAMETER;
   }
 
@@ -172,7 +176,9 @@ DrawRectangle(
   {
     for (INT32 j = 0; j < HorizontalSize; j++)
     {
-      if ((x + j >= Data->Screen.HorizontalResolution) || (y + i >= Data->Screen.VerticalResolution))
+      // Ignoring off screen pixels
+      if ((x + j >= Data->Screen.HorizontalResolution) ||
+          (y + i >= Data->Screen.VerticalResolution))
       {
         continue;
       }
@@ -327,6 +333,11 @@ FillCellInGrid(
     IN UINT32 y,
     IN EFI_GRAPHICS_OUTPUT_BLT_PIXEL *Color)
 {
+  if ((Grid == NULL) || (Color == NULL))
+  {
+    return EFI_INVALID_PARAMETER;
+  }
+
   Grid->ColorsBitmap[y * Grid->HorizontalCellsCount + x] = *Color;
   return EFI_SUCCESS;
 }
@@ -375,15 +386,21 @@ DrawCharacter(
     IN EFI_GRAPHICS_OUTPUT_BLT_PIXEL *BackgroundColor,
     IN UINT32 SizeMultipiler)
 {
-  UINTN FontHeight = 8;
-  UINTN FontWidth = 8;
+  UINTN FontHeight = FONT_VERTICAL_SIZE;
+  UINTN FontWidth = FONT_HORIZONTAL_SIZE;
   UINT32 CurrentX = x;
   UINT32 CurrentY = y;
   UINTN CurrentCharacter = (UINTN)Character;
 
-  for (UINTN row = 0; row < FontHeight; row++)
+  if (CurrentCharacter >= FONT_CHARACTER_COUNT)
   {
-    for (UINTN col = 0; col < FontWidth; col++)
+    DEBUG((DEBUG_ERROR, "DrawCharacter: Invalid character. \n"));
+    return EFI_INVALID_PARAMETER;
+  }
+
+  for (UINTN BitmapRow = 0; BitmapRow < FontHeight; BitmapRow++)
+  {
+    for (UINTN BitmapColumn = 0; BitmapColumn < FontWidth; BitmapColumn++)
     {
       if (CurrentY * Data->Screen.HorizontalResolution + CurrentX >= Data->SizeOfBackBuffer)
       {
@@ -391,7 +408,9 @@ DrawCharacter(
         return EFI_INVALID_PARAMETER;
       }
 
-      if ((font8x8_basic[CurrentCharacter][row] >> col) & 0x1)
+      // Using 8x8 font bitmap, we extract the bit of the current pixel
+      // of the current character
+      if ((gFont8x8_basic[CurrentCharacter][BitmapRow] >> BitmapColumn) & 0x1)
       {
         for (INTN i = 0; i < SizeMultipiler; i++)
         {
@@ -448,7 +467,7 @@ DrawText(
       DEBUG((DEBUG_ERROR, "DrawText: DrawCharacter failed: %r\n", Status));
       return Status;
     }
-    PosX += 8 * SizeMultipiler;
+    PosX += FONT_HORIZONTAL_SIZE * SizeMultipiler;
     Text++;
   }
 
