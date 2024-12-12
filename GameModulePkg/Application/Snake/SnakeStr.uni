@@ -1,0 +1,12 @@
+// /** @file
+//
+// **/
+
+/=#
+
+#langdef en-US "English"
+
+#string STR_TEST_HELP_INFORMATION        #language en-US ""
+".TH Test 0 "Snake game."\r\n"
+".SH NAME\r\n"
+"Snake game application.\r\n"
