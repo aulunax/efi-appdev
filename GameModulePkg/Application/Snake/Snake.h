@@ -9,9 +9,14 @@ typedef struct Point
 } Point;
 
 EFI_SIMPLE_TEXT_INPUT_PROTOCOL  *cin  = NULL; 
-void init_global_variables(EFI_HANDLE handle, EFI_SYSTEM_TABLE *SystemTable)
+void initGlobalVariables(EFI_HANDLE handle, EFI_SYSTEM_TABLE *SystemTable)
 {
     cin = SystemTable->ConIn;
+}
+
+void updateSnakePosition(Point* point, EFI_INPUT_KEY key)
+{
+
 }
 
 

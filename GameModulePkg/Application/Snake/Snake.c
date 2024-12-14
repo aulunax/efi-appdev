@@ -21,15 +21,26 @@ EFI_STATUS EFIAPI SnakeMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
 {
   
   //initialize global variables
-  init_global_variables(ImageHandle, SystemTable);
+  initGlobalVariables(ImageHandle, SystemTable);
 
   EFI_INPUT_KEY key;
   EFI_STATUS status;
   GAME_GRAPHICS_LIB_DATA GraphicsLibData;
+  EFI_GRAPHICS_OUTPUT_BLT_PIXEL Red = {0, 0, 255, 0};
+
+  status = InitializeGraphicMode(&GraphicsLibData);
+  if (status != EFI_SUCCESS)
+  {
+    DEBUG((EFI_D_ERROR, "Failed to enable graphic mode.\n"));
+    return status;
+  }
+
+  UINT32 xPosition = 0;
 
 
   while (1)
   {
+
     status = cin->ReadKeyStroke(cin, &key);
     if (key.ScanCode == SCAN_ESC)
     {
@@ -37,8 +48,42 @@ EFI_STATUS EFIAPI SnakeMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
     }
     if(status == EFI_SUCCESS)
     {
-      Print(L"Key pressed: %c\n", key.UnicodeChar);
+      if(key.ScanCode == SCAN_RIGHT)
+      {
+        xPosition += 10;
+      }
+      if(key.ScanCode == SCAN_LEFT)
+      {
+        xPosition -= 10;
+      }
+      if(key.ScanCode == SCAN_UP)
+      {
+        xPosition -= 10;
+      }
+      if(key.ScanCode == SCAN_DOWN)
+      {
+        xPosition += 10;
+      }
     }
+    
+    status = DrawRectangle(
+        &GraphicsLibData,
+        xPosition, 100,
+        100, 50,
+        &Red);
+    if (status != EFI_SUCCESS)
+    {
+      DEBUG((EFI_D_ERROR, "Failed to draw rectangle.\n"));
+      return status;
+    }
+
+    status = UpdateVideoBuffer(&GraphicsLibData);
+    if (status != EFI_SUCCESS)
+    {
+      DEBUG((EFI_D_ERROR, "Failed to update video buffer.\n"));
+      return status;
+    }
+
   }
 
 
