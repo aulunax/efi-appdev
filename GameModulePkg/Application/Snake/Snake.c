@@ -27,6 +27,7 @@ EFI_STATUS EFIAPI SnakeMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
   EFI_STATUS status;
   GAME_GRAPHICS_LIB_DATA GraphicsLibData;
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL Red = {0, 0, 255, 0};
+  GAME_GRAPHICS_LIB_GRID MainGrid;
 
   status = InitializeGraphicMode(&GraphicsLibData);
   if (status != EFI_SUCCESS)
@@ -35,12 +36,21 @@ EFI_STATUS EFIAPI SnakeMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
     return status;
   }
 
-  UINT32 xPosition = 0;
+  status =  CreateCustomGrid(&MainGrid, 800, 600, 50, 50, &Red);
+  if (status != EFI_SUCCESS)
+  {
+    DEBUG((EFI_D_ERROR, "Failed to create grid.\n"));
+    return status;
+  }
 
+
+
+  Point snakePosition = {0, 0};
+  ClearScreen(&GraphicsLibData);
+  UpdateVideoBuffer(&GraphicsLibData);
 
   while (1)
   {
-
     status = cin->ReadKeyStroke(cin, &key);
     if (key.ScanCode == SCAN_ESC)
     {
@@ -48,45 +58,17 @@ EFI_STATUS EFIAPI SnakeMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
     }
     if(status == EFI_SUCCESS)
     {
-      if(key.ScanCode == SCAN_RIGHT)
-      {
-        xPosition += 10;
-      }
-      if(key.ScanCode == SCAN_LEFT)
-      {
-        xPosition -= 10;
-      }
-      if(key.ScanCode == SCAN_UP)
-      {
-        xPosition -= 10;
-      }
-      if(key.ScanCode == SCAN_DOWN)
-      {
-        xPosition += 10;
-      }
+      updateSnakePosition(&snakePosition, key);
     }
     
-    status = DrawRectangle(
-        &GraphicsLibData,
-        xPosition, 100,
-        100, 50,
-        &Red);
-    if (status != EFI_SUCCESS)
-    {
-      DEBUG((EFI_D_ERROR, "Failed to draw rectangle.\n"));
-      return status;
-    }
-
-    status = UpdateVideoBuffer(&GraphicsLibData);
-    if (status != EFI_SUCCESS)
-    {
-      DEBUG((EFI_D_ERROR, "Failed to update video buffer.\n"));
-      return status;
-    }
-
+    ClearGrid(&MainGrid);
+    status = FillCellInGrid(&MainGrid, snakePosition.x, snakePosition.y, &Red);
+    DrawGrid(&GraphicsLibData, &MainGrid, 0, 0);
+    UpdateVideoBuffer(&GraphicsLibData);
   }
 
-
+  DeleteGrid(&MainGrid);
+  FinishGraphicMode(&GraphicsLibData);
   return EFI_SUCCESS;
 
 }
