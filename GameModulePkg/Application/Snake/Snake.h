@@ -18,19 +18,19 @@ void updateSnakePosition(Point* point, EFI_INPUT_KEY key)
 {
     if(key.ScanCode == SCAN_RIGHT)
     {
-        point->x += 10;
+        point->x += 1;
     }
     if(key.ScanCode == SCAN_LEFT)
     {
-        point->x -= 10;
+        point->x -= 1;
     }
     if(key.ScanCode == SCAN_UP)
     {
-        point->y -= 10;
+        point->y -= 1;
     }
     if(key.ScanCode == SCAN_DOWN)
     {
-        point->y += 10;
+        point->y += 1;
     }
     else
     {

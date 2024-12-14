@@ -28,6 +28,7 @@ EFI_STATUS EFIAPI SnakeMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
   GAME_GRAPHICS_LIB_DATA GraphicsLibData;
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL Red = {0, 0, 255, 0};
   GAME_GRAPHICS_LIB_GRID MainGrid;
+  
 
   status = InitializeGraphicMode(&GraphicsLibData);
   if (status != EFI_SUCCESS)
@@ -36,7 +37,9 @@ EFI_STATUS EFIAPI SnakeMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
     return status;
   }
 
-  status =  CreateCustomGrid(&MainGrid, 800, 600, 50, 50, &Red);
+  UINT32 screenWidth = GraphicsLibData.Screen.HorizontalResolution;
+  UINT32 screenHeight = GraphicsLibData.Screen.VerticalResolution;
+  status =  CreateCustomGrid(&MainGrid, screenWidth, screenHeight, 50, 50, NULL);
   if (status != EFI_SUCCESS)
   {
     DEBUG((EFI_D_ERROR, "Failed to create grid.\n"));
