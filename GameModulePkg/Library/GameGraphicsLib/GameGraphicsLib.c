@@ -165,21 +165,15 @@ DrawRectangle(
     return EFI_INVALID_PARAMETER;
   }
 
-  // Checking if the starting point of the rectangle is within the screen
-  if ((x < 0) || (y < 0) ||
-      (x > Data->Screen.HorizontalResolution) ||
-      (y > Data->Screen.VerticalResolution))
-  {
-    return EFI_INVALID_PARAMETER;
-  }
-
   for (INT32 i = 0; i < VerticalSize; i++)
   {
     for (INT32 j = 0; j < HorizontalSize; j++)
     {
       // Ignoring off screen pixels
       if ((x + j >= Data->Screen.HorizontalResolution) ||
-          (y + i >= Data->Screen.VerticalResolution))
+          (y + i >= Data->Screen.VerticalResolution) ||
+          (x + j < 0) ||
+          (y + i < 0))
       {
         continue;
       }
