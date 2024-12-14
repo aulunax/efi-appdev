@@ -28,6 +28,9 @@ EFI_STATUS EFIAPI SnakeMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
   GAME_GRAPHICS_LIB_DATA GraphicsLibData;
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL Red = {0, 0, 255, 0};
   GAME_GRAPHICS_LIB_GRID MainGrid;
+  Point snakeParts[MAX_SNAKE_SIZE]; 
+  UINT32 snakeSize = 20;
+  Direction direction = NONE;
   
 
   status = InitializeGraphicMode(&GraphicsLibData);
@@ -39,6 +42,7 @@ EFI_STATUS EFIAPI SnakeMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
 
   UINT32 screenWidth = GraphicsLibData.Screen.HorizontalResolution;
   UINT32 screenHeight = GraphicsLibData.Screen.VerticalResolution;
+
   status =  CreateCustomGrid(&MainGrid, screenWidth, screenHeight, 50, 50, NULL);
   if (status != EFI_SUCCESS)
   {
@@ -48,7 +52,7 @@ EFI_STATUS EFIAPI SnakeMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
 
 
 
-  Point snakePosition = {0, 0};
+  initSnake(snakeParts, snakeSize);
   ClearScreen(&GraphicsLibData);
   UpdateVideoBuffer(&GraphicsLibData);
 
@@ -61,13 +65,17 @@ EFI_STATUS EFIAPI SnakeMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
     }
     if(status == EFI_SUCCESS)
     {
-      updateSnakePosition(&snakePosition, key);
+      changeDirection(key, &direction);
     }
     
+    moveSnake(snakeParts, snakeSize, direction);
+
     ClearGrid(&MainGrid);
-    status = FillCellInGrid(&MainGrid, snakePosition.x, snakePosition.y, &Red);
+    status = drawSnake(&MainGrid, snakeParts, snakeSize, &Red);
     DrawGrid(&GraphicsLibData, &MainGrid, 0, 0);
     UpdateVideoBuffer(&GraphicsLibData);
+    // Stall for 100ms
+    gBS->Stall(100000);
   }
 
   DeleteGrid(&MainGrid);
