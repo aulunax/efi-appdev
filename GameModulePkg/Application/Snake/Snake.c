@@ -17,14 +17,19 @@
 extern EFI_SIMPLE_TEXT_INPUT_PROTOCOL *cin;
 
 // Entry point for the application so i use UEFI convention
-EFI_STATUS EFIAPI SnakeMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *SystemTable)
+EFI_STATUS
+EFIAPI SnakeMain(
+  IN EFI_HANDLE ImageHandle, 
+  IN EFI_SYSTEM_TABLE *SystemTable)
 {
   
   //initialize global variables
   initGlobalVariables(ImageHandle, SystemTable);
 
+  EFI_EVENT FrameTimerEvent;
   EFI_INPUT_KEY key;
   EFI_STATUS status;
+  EFI_STATUS keyStatus;
   GAME_GRAPHICS_LIB_DATA GraphicsLibData;
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL Red = {0, 0, 255, 0};
   GAME_GRAPHICS_LIB_GRID MainGrid;
@@ -41,6 +46,21 @@ EFI_STATUS EFIAPI SnakeMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
     return status;
   }
 
+  status = gBS->CreateEvent(EVT_TIMER, TPL_NOTIFY, NULL, NULL, &FrameTimerEvent);
+  if(status != EFI_SUCCESS)
+  {
+    Print(L"Failed to create timer event: %r\n", status);
+    return status;
+  }
+
+  status = gBS->SetTimer(FrameTimerEvent, TimerPeriodic, 10000000 / PcdGet32(PcdTestFramerate));
+  if (status != EFI_SUCCESS)
+  {
+    Print(L"Failed to set timer: %r\n", status);
+    gBS->CloseEvent(FrameTimerEvent);
+    return status;
+  }
+
   UINT32 screenWidth = GraphicsLibData.Screen.HorizontalResolution;
   UINT32 screenHeight = GraphicsLibData.Screen.VerticalResolution;
 
@@ -51,24 +71,31 @@ EFI_STATUS EFIAPI SnakeMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
     return status;
   }
 
-
-
   initSnake(snakeParts, snakeSize);
   ClearScreen(&GraphicsLibData);
   UpdateVideoBuffer(&GraphicsLibData);
 
   while (1)
   {
-    status = cin->ReadKeyStroke(cin, &key);
-    if (key.ScanCode == SCAN_ESC)
+  
+    status = gBS->CheckEvent(FrameTimerEvent);  
+    if ((RETURN_STATUS)status == EFI_NOT_READY)
     {
-      break;
+      keyStatus = cin->ReadKeyStroke(cin, &key);
+      if (key.ScanCode == SCAN_ESC)
+        {
+          break;
+        }
+      if(keyStatus == EFI_SUCCESS)
+        {
+          changeDirection(key, &direction);
+          firstMove = FALSE;
+        }
+      continue;
     }
-    if(status == EFI_SUCCESS)
-    {
-      changeDirection(key, &direction);
-      firstMove = FALSE;
-    }
+    
+    
+  
     
     moveSnake(snakeParts, snakeSize, direction, screenWidth, screenHeight);
     if(checkCollision(snakeParts, snakeSize) && !firstMove)
@@ -80,8 +107,6 @@ EFI_STATUS EFIAPI SnakeMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
     status = drawSnake(&MainGrid, snakeParts, snakeSize, &Red);
     DrawGrid(&GraphicsLibData, &MainGrid, 0, 0);
     UpdateVideoBuffer(&GraphicsLibData);
-    // Stall for 100ms
-    gBS->Stall(100000);
   }
 
   DeleteGrid(&MainGrid);
