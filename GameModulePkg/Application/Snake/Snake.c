@@ -43,7 +43,7 @@ EFI_STATUS EFIAPI SnakeMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
   UINT32 screenWidth = GraphicsLibData.Screen.HorizontalResolution;
   UINT32 screenHeight = GraphicsLibData.Screen.VerticalResolution;
 
-  status =  CreateCustomGrid(&MainGrid, screenWidth, screenHeight, 50, 50, NULL);
+  status =  CreateCustomGrid(&MainGrid, screenWidth, screenHeight, HORIZONTAL_CELS, VERTICAL_CELS, NULL);
   if (status != EFI_SUCCESS)
   {
     DEBUG((EFI_D_ERROR, "Failed to create grid.\n"));
@@ -68,7 +68,7 @@ EFI_STATUS EFIAPI SnakeMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
       changeDirection(key, &direction);
     }
     
-    moveSnake(snakeParts, snakeSize, direction);
+    moveSnake(snakeParts, snakeSize, direction, screenWidth, screenHeight);
 
     ClearGrid(&MainGrid);
     status = drawSnake(&MainGrid, snakeParts, snakeSize, &Red);

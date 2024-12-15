@@ -2,7 +2,9 @@
 #define SNAKE_H
 #include <Uefi.h>
 
-#define MAX_SNAKE_SIZE 20
+#define HORIZONTAL_CELS 50
+#define VERTICAL_CELS 50
+#define MAX_SNAKE_SIZE HORIZONTAL_CELS * VERTICAL_CELS
 
 typedef struct Point
 {
@@ -29,19 +31,47 @@ void updateHead(Point* point, Direction direction)
 {
     if(direction == UP)
     {
-        point->y -= 1;
+        if(point->y == 0)
+        {
+            point->y = HORIZONTAL_CELS - 1;
+        }
+        else
+        {
+            point->y -= 1;
+        }
     }
     if(direction == DOWN)
     {
-        point->y += 1;
+        if(point->y == VERTICAL_CELS - 1)
+        {
+            point->y = 0;
+        }
+        else
+        {
+            point->y += 1;
+        }
     }
     if(direction == LEFT)
     {
-        point->x -= 1;
+        if(point->x == 0)
+        {
+            point->x = HORIZONTAL_CELS - 1;
+        }
+        else
+        {
+            point->x -= 1;
+        }
     }
     if(direction == RIGHT)
     {
-        point->x += 1;
+        if(point->x == HORIZONTAL_CELS - 1)
+        {
+            point->x = 0;
+        }
+        else
+        {
+            point->x += 1;
+        }
     }
     else
     {
@@ -59,6 +89,7 @@ void initSnake(Point* snakeParts, UINT32 snakeSize)
     }
 }
 
+
 EFI_STATUS drawSnake(GAME_GRAPHICS_LIB_GRID* grid, Point* snakeParts, UINT32 snakeSize, EFI_GRAPHICS_OUTPUT_BLT_PIXEL* color)
 {
     EFI_STATUS status;
@@ -74,7 +105,7 @@ EFI_STATUS drawSnake(GAME_GRAPHICS_LIB_GRID* grid, Point* snakeParts, UINT32 sna
     return EFI_SUCCESS;
 }
 
-void moveSnake(Point* snakeParts, UINT32 snakeSize, Direction direction)
+void moveSnake(Point* snakeParts, UINT32 snakeSize, Direction direction, UINT32 screenWidth, UINT32 screenHeight)
 {
     for(UINT32 i = snakeSize - 1; i > 0; i--)
     {
