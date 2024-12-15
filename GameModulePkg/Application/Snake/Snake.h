@@ -9,6 +9,7 @@
 #define VERTICAL_CELS 50
 #define MAX_SNAKE_SIZE HORIZONTAL_CELS * VERTICAL_CELS
 
+
 typedef struct Point
 {
     UINT32 x;
@@ -25,32 +26,21 @@ typedef enum Direction
 } Direction;
 
 EFI_SIMPLE_TEXT_INPUT_PROTOCOL  *cin  = NULL; 
-EFI_RNG_PROTOCOL *RngProtocol = NULL;
+UINT32 seedBase = 1;
+
 
 void initGlobalVariables(EFI_HANDLE handle, EFI_SYSTEM_TABLE *SystemTable)
 {
     cin = SystemTable->ConIn;
-    gBS->LocateProtocol(&gEfiRngProtocolGuid, NULL, (VOID **)&RngProtocol);
 
 }
 
-UINT32 RandomRange(UINT32 Min, UINT32 Max)
-{
-    EFI_STATUS Status;
-    UINT32 RandomValue = 0;
+UINT32 simple_rng(UINT32 seed, UINT32 min, UINT32 max) {
+    // Linear Congruential Generator (LCG) formula
+    seedBase += seed;
+    seedBase = (seedBase * 1664525 + 1013904223); // LCG constants for better randomness
 
-    Status = RngProtocol->GetRNG(RngProtocol, NULL, sizeof(RandomValue), (UINT8 *)&RandomValue);
-    if (EFI_ERROR(Status))
-    {
-        return Min; 
-    }
-
-    if (Max > Min)
-    {
-        RandomValue = Min + (RandomValue % (Max - Min + 1));
-    }
-
-    return RandomValue;
+    return min + (seedBase % (max - min + 1));  // Ensure the result is between min and max
 }
 
 
@@ -204,14 +194,14 @@ BOOLEAN checkIfPointIsInSnake(Point* snakeParts, UINT32 snakeSize, Point point)
     return FALSE;
 }
 
-void generateRandomPoint(Point* point, Point* snakeParts, UINT32 snakeSize, GAME_GRAPHICS_LIB_GRID* grid, EFI_GRAPHICS_OUTPUT_BLT_PIXEL* color)
+void generateRandomPoint(Point* point, Point* snakeParts, UINT32 snakeSize, GAME_GRAPHICS_LIB_GRID* grid, EFI_GRAPHICS_OUTPUT_BLT_PIXEL* color, UINT32 seed)
 {
-    point->x = (UINT32)RandomRange(0, HORIZONTAL_CELS - 1);
-    point->y = (UINT32)RandomRange(0, VERTICAL_CELS - 1);
+    point->x = simple_rng(seed, 0, HORIZONTAL_CELS - 1);
+    point->y = simple_rng(seed, 0, VERTICAL_CELS - 1);
     while(checkIfPointIsInSnake(snakeParts, snakeSize, *point))
     {
-        point->x = (UINT32)RandomRange(0, HORIZONTAL_CELS - 1);
-        point->y = (UINT32)RandomRange(0, VERTICAL_CELS - 1);
+        point->x = simple_rng(seed, 0, HORIZONTAL_CELS - 1);
+        point->y = simple_rng(seed, 0, VERTICAL_CELS - 1);
     }
     FillCellInGrid(grid, point->x, point->y, color);
 }

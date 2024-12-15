@@ -85,5 +85,5 @@ OPTS="$OPTS -device virtio-net-pci,netdev=net0,romfile="
 OPTS="$OPTS -device qxl-vga"
 
 # Enables RNG in QUEMU 
-OPTS="$OPTS -device virtio-rng-pci"
+# OPTS="$OPTS -device virtio-rng-pci"
 qemu-system-x86_64 $OPTS

@@ -39,6 +39,7 @@ EFIAPI SnakeMain(
   Direction direction = NONE;
   BOOLEAN firstMove = TRUE;
   Point food;
+  UINT32 subFrames = 0;
   
 
   status = InitializeGraphicMode(&GraphicsLibData);
@@ -93,6 +94,7 @@ EFIAPI SnakeMain(
           changeDirection(key, &direction);
           firstMove = FALSE;
         }
+      subFrames ++;
       continue;
     }
     
@@ -107,7 +109,7 @@ EFIAPI SnakeMain(
 
     ClearGrid(&MainGrid);
     status = drawSnake(&MainGrid, snakeParts, snakeSize, &Red);
-    generateRandomPoint(&food, snakeParts, snakeSize, &MainGrid, &Green);
+    generateRandomPoint(&food, snakeParts, snakeSize, &MainGrid, &Green, subFrames);
     DrawGrid(&GraphicsLibData, &MainGrid, 0, 0);
     UpdateVideoBuffer(&GraphicsLibData);
   }
