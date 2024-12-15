@@ -38,8 +38,9 @@
 
   gEfiGameModulePkgTokenSpaceGuid.PcdTestTimes|60|UINT32|0x40000006
 
-  # This PCD defines the framerate.
   gEfiGameModulePkgTokenSpaceGuid.PcdTestFramerate|15|UINT32|0x40000007
+
+  
 
 [Guids]
   gEfiGameModulePkgTokenSpaceGuid       = { 0xA1AFF049, 0xFDEB, 0x442a, { 0xB3, 0x20, 0x13, 0xAB, 0x4C, 0xB7, 0x2B, 0xBB }}

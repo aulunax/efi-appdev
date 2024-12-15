@@ -1,6 +1,9 @@
 #ifndef SNAKE_H
 #define SNAKE_H
+
 #include <Uefi.h>
+#include <Library/RngLib.h>
+#include <Protocol/Rng.h>
 
 #define HORIZONTAL_CELS 50
 #define VERTICAL_CELS 50
@@ -26,6 +29,36 @@ void initGlobalVariables(EFI_HANDLE handle, EFI_SYSTEM_TABLE *SystemTable)
 {
     cin = SystemTable->ConIn;
 }
+
+UINT32 RandomRange(UINT32 Min, UINT32 Max)
+{
+    EFI_RNG_PROTOCOL *RngProtocol = NULL;
+    EFI_STATUS Status;
+    UINT32 RandomValue = 0;
+
+    // Locate the RNG Protocol
+    Status = gBS->LocateProtocol(&gEfiRngProtocolGuid, NULL, (VOID **)&RngProtocol);
+    if (EFI_ERROR(Status))
+    {
+        return Min; // Fallback to Min if RNG is not available
+    }
+
+    // Generate a random number
+    Status = RngProtocol->GetRNG(RngProtocol, NULL, sizeof(RandomValue), (UINT8 *)&RandomValue);
+    if (EFI_ERROR(Status))
+    {
+        return Min; // Fallback to Min if RNG generation fails
+    }
+
+    // Scale the random number to the desired range
+    if (Max > Min)
+    {
+        RandomValue = Min + (RandomValue % (Max - Min + 1));
+    }
+
+    return RandomValue;
+}
+
 
 void updateHead(Point* point, Direction direction)
 {
@@ -118,18 +151,37 @@ void changeDirection(EFI_INPUT_KEY key, Direction* direction)
 {
     if(key.ScanCode == SCAN_UP)
     {
+        if(*direction == DOWN)
+        {
+            return;
+        }
         *direction = UP;
     }
     if(key.ScanCode == SCAN_DOWN)
     {
+        if(*direction == UP)
+        {
+            return;
+        }
+
         *direction = DOWN;
     }
     if(key.ScanCode == SCAN_LEFT)
     {
+        if(*direction == RIGHT)
+        {
+            return;
+        }
+
         *direction = LEFT;
     }
     if(key.ScanCode == SCAN_RIGHT)
     {
+        if(*direction == LEFT)
+        {
+            return;
+        }
+
         *direction = RIGHT;
     }
 }
@@ -144,6 +196,30 @@ BOOLEAN checkCollision(Point* snakeParts, UINT32 snakeSize)
         }
     }
     return FALSE;
+}
+
+BOOLEAN checkIfPointIsInSnake(Point* snakeParts, UINT32 snakeSize, Point point)
+{
+    for(UINT32 i = 0; i < snakeSize; i++)
+    {
+        if(snakeParts[i].x == point.x && snakeParts[i].y == point.y)
+        {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+void generateRandomPoint(Point* point, Point* snakeParts, UINT32 snakeSize, GAME_GRAPHICS_LIB_GRID* grid, EFI_GRAPHICS_OUTPUT_BLT_PIXEL* color)
+{
+    point->x = (UINT32)RandomRange(0, HORIZONTAL_CELS - 1);
+    point->y = (UINT32)RandomRange(0, VERTICAL_CELS - 1);
+    while(checkIfPointIsInSnake(snakeParts, snakeSize, *point))
+    {
+        point->x = (UINT32)RandomRange(0, HORIZONTAL_CELS - 1);
+        point->y = (UINT32)RandomRange(0, VERTICAL_CELS - 1);
+    }
+    FillCellInGrid(grid, point->x, point->y, color);
 }
 
 

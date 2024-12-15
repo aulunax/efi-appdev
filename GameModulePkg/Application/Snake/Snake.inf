@@ -53,6 +53,7 @@
   MemoryAllocationLib
   DebugLib
   GameGraphicsLib
+  RngLib
   
 [Pcd]
   gEfiGameModulePkgTokenSpaceGuid.PcdTestTimes               ## SOMETIMES_CONSUMES

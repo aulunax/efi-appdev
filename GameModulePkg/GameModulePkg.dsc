@@ -115,6 +115,9 @@
   # Custom Libs
   GameGraphicsLib|GameModulePkg/Library/GameGraphicsLib/GameGraphicsLib.inf
 
+  # RngLib
+  RngLib|MdePkg/Library/BaseRngLibNull/BaseRngLibNull.inf
+
 [Components]
   GameModulePkg/Application/HelloWorld/HelloWorld.inf
   GameModulePkg/Application/Test/Test.inf
