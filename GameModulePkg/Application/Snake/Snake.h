@@ -7,8 +7,7 @@
 
 #define HORIZONTAL_CELS 50
 #define VERTICAL_CELS 50
-#define MAX_SNAKE_SIZE HORIZONTAL_CELS * VERTICAL_CELS
-
+#define MAX_SNAKE_SIZE HORIZONTAL_CELS *VERTICAL_CELS
 
 typedef struct Point
 {
@@ -25,30 +24,28 @@ typedef enum Direction
     NONE
 } Direction;
 
-EFI_SIMPLE_TEXT_INPUT_PROTOCOL  *cin  = NULL; 
+EFI_SIMPLE_TEXT_INPUT_PROTOCOL *cin = NULL;
 UINT32 seedBase = 1;
-
 
 void initGlobalVariables(EFI_HANDLE handle, EFI_SYSTEM_TABLE *SystemTable)
 {
     cin = SystemTable->ConIn;
-
 }
 
-UINT32 simple_rng(UINT32 seed, UINT32 min, UINT32 max) {
+UINT32 simple_rng(UINT32 seed, UINT32 min, UINT32 max)
+{
     // Linear Congruential Generator (LCG) formula
     seedBase += seed;
     seedBase = (seedBase * 1664525 + 1013904223); // LCG constants for better randomness
 
-    return min + (seedBase % (max - min + 1));  // Ensure the result is between min and max
+    return min + (seedBase % (max - min + 1)); // Ensure the result is between min and max
 }
 
-
-void updateHead(Point* point, Direction direction)
+void updateHead(Point *point, Direction direction)
 {
-    if(direction == UP)
+    if (direction == UP)
     {
-        if(point->y == 0)
+        if (point->y == 0)
         {
             point->y = HORIZONTAL_CELS - 1;
         }
@@ -57,9 +54,9 @@ void updateHead(Point* point, Direction direction)
             point->y -= 1;
         }
     }
-    if(direction == DOWN)
+    if (direction == DOWN)
     {
-        if(point->y == VERTICAL_CELS - 1)
+        if (point->y == VERTICAL_CELS - 1)
         {
             point->y = 0;
         }
@@ -68,9 +65,9 @@ void updateHead(Point* point, Direction direction)
             point->y += 1;
         }
     }
-    if(direction == LEFT)
+    if (direction == LEFT)
     {
-        if(point->x == 0)
+        if (point->x == 0)
         {
             point->x = HORIZONTAL_CELS - 1;
         }
@@ -79,9 +76,9 @@ void updateHead(Point* point, Direction direction)
             point->x -= 1;
         }
     }
-    if(direction == RIGHT)
+    if (direction == RIGHT)
     {
-        if(point->x == HORIZONTAL_CELS - 1)
+        if (point->x == HORIZONTAL_CELS - 1)
         {
             point->x = 0;
         }
@@ -94,74 +91,96 @@ void updateHead(Point* point, Direction direction)
     {
         return;
     }
-
 }
 
-void initSnake(Point* snakeParts, UINT32 snakeSize)
+void initSnake(Point *snakeParts, UINT32 snakeSize)
 {
-    for(UINT32 i = 0; i < snakeSize; i++)
+    for (UINT32 i = 0; i < snakeSize; i++)
     {
         snakeParts[i].x = 0;
         snakeParts[i].y = 0;
     }
 }
 
-
-EFI_STATUS drawSnake(GAME_GRAPHICS_LIB_GRID* grid, Point* snakeParts, UINT32 snakeSize, EFI_GRAPHICS_OUTPUT_BLT_PIXEL* color)
+EFI_STATUS drawSnake(GAME_GRAPHICS_LIB_GRID *grid, Point *snakeParts, UINT32 snakeSize, EFI_GRAPHICS_OUTPUT_BLT_PIXEL *color)
 {
     EFI_STATUS status;
-    for(UINT32 i = 0; i < snakeSize; i++)
+    for (UINT32 i = 0; i < snakeSize; i++)
     {
         status = FillCellInGrid(grid, snakeParts[i].x, snakeParts[i].y, color);
-        if(EFI_ERROR(status))
+        if (EFI_ERROR(status))
         {
             return status;
         }
-
     }
     return EFI_SUCCESS;
 }
 
-void moveSnake(Point* snakeParts, UINT32 snakeSize, Direction direction, UINT32 screenWidth, UINT32 screenHeight)
+void moveSnake(Point *snakeParts, UINT32 snakeSize, Direction direction, UINT32 screenWidth, UINT32 screenHeight)
 {
-    for(UINT32 i = snakeSize - 1; i > 0; i--)
+    for (UINT32 i = snakeSize - 1; i > 0; i--)
     {
         snakeParts[i] = snakeParts[i - 1];
     }
     updateHead(&snakeParts[0], direction);
 }
 
-void changeDirection(EFI_INPUT_KEY key, Direction* direction)
+void setNewDirection(Direction *direction, Direction nextDirection)
 {
-    if(key.ScanCode == SCAN_UP)
+    if (*direction == NONE)
     {
-        if(*direction == DOWN)
+        *direction = nextDirection;
+    }
+    if (*direction == UP && nextDirection == DOWN)
+    {
+        return;
+    }
+    if (*direction == DOWN && nextDirection == UP)
+    {
+        return;
+    }
+    if (*direction == LEFT && nextDirection == RIGHT)
+    {
+        return;
+    }
+    if (*direction == RIGHT && nextDirection == LEFT)
+    {
+        return;
+    }
+    *direction = nextDirection;
+}
+
+void changeDirection(EFI_INPUT_KEY key, Direction *direction)
+{
+    if (key.ScanCode == SCAN_UP)
+    {
+        if (*direction == DOWN)
         {
             return;
         }
         *direction = UP;
     }
-    if(key.ScanCode == SCAN_DOWN)
+    if (key.ScanCode == SCAN_DOWN)
     {
-        if(*direction == UP)
+        if (*direction == UP)
         {
             return;
         }
 
         *direction = DOWN;
     }
-    if(key.ScanCode == SCAN_LEFT)
+    if (key.ScanCode == SCAN_LEFT)
     {
-        if(*direction == RIGHT)
+        if (*direction == RIGHT)
         {
             return;
         }
 
         *direction = LEFT;
     }
-    if(key.ScanCode == SCAN_RIGHT)
+    if (key.ScanCode == SCAN_RIGHT)
     {
-        if(*direction == LEFT)
+        if (*direction == LEFT)
         {
             return;
         }
@@ -170,11 +189,11 @@ void changeDirection(EFI_INPUT_KEY key, Direction* direction)
     }
 }
 
-BOOLEAN checkCollision(Point* snakeParts, UINT32 snakeSize)
+BOOLEAN checkCollision(Point *snakeParts, UINT32 snakeSize)
 {
-    for(UINT32 i = 1; i < snakeSize; i++)
+    for (UINT32 i = 1; i < snakeSize; i++)
     {
-        if(snakeParts[0].x == snakeParts[i].x && snakeParts[0].y == snakeParts[i].y)
+        if (snakeParts[0].x == snakeParts[i].x && snakeParts[0].y == snakeParts[i].y)
         {
             return TRUE;
         }
@@ -182,11 +201,11 @@ BOOLEAN checkCollision(Point* snakeParts, UINT32 snakeSize)
     return FALSE;
 }
 
-BOOLEAN checkIfPointIsInSnake(Point* snakeParts, UINT32 snakeSize, Point point)
+BOOLEAN checkIfPointIsInSnake(Point *snakeParts, UINT32 snakeSize, Point point)
 {
-    for(UINT32 i = 0; i < snakeSize; i++)
+    for (UINT32 i = 0; i < snakeSize; i++)
     {
-        if(snakeParts[i].x == point.x && snakeParts[i].y == point.y)
+        if (snakeParts[i].x == point.x && snakeParts[i].y == point.y)
         {
             return TRUE;
         }
@@ -194,17 +213,16 @@ BOOLEAN checkIfPointIsInSnake(Point* snakeParts, UINT32 snakeSize, Point point)
     return FALSE;
 }
 
-void generateRandomPoint(Point* point, Point* snakeParts, UINT32 snakeSize, GAME_GRAPHICS_LIB_GRID* grid, EFI_GRAPHICS_OUTPUT_BLT_PIXEL* color, UINT32 seed)
+void generateRandomPoint(Point *point, Point *snakeParts, UINT32 snakeSize, GAME_GRAPHICS_LIB_GRID *grid, EFI_GRAPHICS_OUTPUT_BLT_PIXEL *color, UINT32 seed)
 {
     point->x = simple_rng(seed, 0, HORIZONTAL_CELS - 1);
     point->y = simple_rng(seed, 0, VERTICAL_CELS - 1);
-    while(checkIfPointIsInSnake(snakeParts, snakeSize, *point))
+    while (checkIfPointIsInSnake(snakeParts, snakeSize, *point))
     {
         point->x = simple_rng(seed, 0, HORIZONTAL_CELS - 1);
         point->y = simple_rng(seed, 0, VERTICAL_CELS - 1);
     }
     FillCellInGrid(grid, point->x, point->y, color);
 }
-
 
 #endif

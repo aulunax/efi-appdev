@@ -1,6 +1,6 @@
 /** @file
  * Snake game
-**/
+ **/
 
 #include <Uefi.h>
 #include <Library/PcdLib.h>
@@ -19,11 +19,11 @@ extern EFI_SIMPLE_TEXT_INPUT_PROTOCOL *cin;
 // Entry point for the application so i use UEFI convention
 EFI_STATUS
 EFIAPI SnakeMain(
-  IN EFI_HANDLE ImageHandle, 
-  IN EFI_SYSTEM_TABLE *SystemTable)
+    IN EFI_HANDLE ImageHandle,
+    IN EFI_SYSTEM_TABLE *SystemTable)
 {
-  
-  //initialize global variables
+
+  // initialize global variables
   initGlobalVariables(ImageHandle, SystemTable);
 
   EFI_EVENT FrameTimerEvent;
@@ -32,15 +32,15 @@ EFIAPI SnakeMain(
   EFI_STATUS keyStatus;
   GAME_GRAPHICS_LIB_DATA GraphicsLibData;
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL Red = {0, 0, 255, 0};
-  EFI_GRAPHICS_OUTPUT_BLT_PIXEL  Green = {0, 255, 0, 0};
+  EFI_GRAPHICS_OUTPUT_BLT_PIXEL Green = {0, 255, 0, 0};
   GAME_GRAPHICS_LIB_GRID MainGrid;
-  Point snakeParts[MAX_SNAKE_SIZE]; 
+  Point snakeParts[MAX_SNAKE_SIZE];
   UINT32 snakeSize = 20;
   Direction direction = NONE;
+  Direction nextDirection = NONE;
   BOOLEAN firstMove = TRUE;
   Point food;
   UINT32 subFrames = 0;
-  
 
   status = InitializeGraphicMode(&GraphicsLibData);
   if (status != EFI_SUCCESS)
@@ -50,7 +50,7 @@ EFIAPI SnakeMain(
   }
 
   status = gBS->CreateEvent(EVT_TIMER, TPL_NOTIFY, NULL, NULL, &FrameTimerEvent);
-  if(status != EFI_SUCCESS)
+  if (status != EFI_SUCCESS)
   {
     Print(L"Failed to create timer event: %r\n", status);
     return status;
@@ -67,7 +67,7 @@ EFIAPI SnakeMain(
   UINT32 screenWidth = GraphicsLibData.Screen.HorizontalResolution;
   UINT32 screenHeight = GraphicsLibData.Screen.VerticalResolution;
 
-  status =  CreateCustomGrid(&MainGrid, screenWidth, screenHeight, HORIZONTAL_CELS, VERTICAL_CELS, NULL);
+  status = CreateCustomGrid(&MainGrid, screenWidth, screenHeight, HORIZONTAL_CELS, VERTICAL_CELS, NULL);
   if (status != EFI_SUCCESS)
   {
     DEBUG((EFI_D_ERROR, "Failed to create grid.\n"));
@@ -80,29 +80,28 @@ EFIAPI SnakeMain(
 
   while (1)
   {
-  
-    status = gBS->CheckEvent(FrameTimerEvent);  
+
+    status = gBS->CheckEvent(FrameTimerEvent);
     if ((RETURN_STATUS)status == EFI_NOT_READY)
     {
       keyStatus = cin->ReadKeyStroke(cin, &key);
       if (key.ScanCode == SCAN_ESC)
-        {
-          break;
-        }
-      if(keyStatus == EFI_SUCCESS)
-        {
-          changeDirection(key, &direction);
-          firstMove = FALSE;
-        }
-      subFrames ++;
+      {
+        break;
+      }
+      if (keyStatus == EFI_SUCCESS)
+      {
+        firstMove = FALSE;
+        changeDirection(key, &nextDirection);
+      }
+      subFrames++;
       continue;
     }
-    
-    
-  
-    
+
+    setNewDirection(&direction, nextDirection);
+
     moveSnake(snakeParts, snakeSize, direction, screenWidth, screenHeight);
-    if(checkCollision(snakeParts, snakeSize) && !firstMove)
+    if (checkCollision(snakeParts, snakeSize) && !firstMove)
     {
       break;
     }
@@ -117,5 +116,4 @@ EFIAPI SnakeMain(
   DeleteGrid(&MainGrid);
   FinishGraphicMode(&GraphicsLibData);
   return EFI_SUCCESS;
-
 }
