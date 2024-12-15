@@ -134,5 +134,17 @@ void changeDirection(EFI_INPUT_KEY key, Direction* direction)
     }
 }
 
+BOOLEAN checkCollision(Point* snakeParts, UINT32 snakeSize)
+{
+    for(UINT32 i = 1; i < snakeSize; i++)
+    {
+        if(snakeParts[0].x == snakeParts[i].x && snakeParts[0].y == snakeParts[i].y)
+        {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
 
 #endif

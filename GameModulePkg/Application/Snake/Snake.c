@@ -31,6 +31,7 @@ EFI_STATUS EFIAPI SnakeMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
   Point snakeParts[MAX_SNAKE_SIZE]; 
   UINT32 snakeSize = 20;
   Direction direction = NONE;
+  BOOLEAN firstMove = TRUE;
   
 
   status = InitializeGraphicMode(&GraphicsLibData);
@@ -66,9 +67,14 @@ EFI_STATUS EFIAPI SnakeMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
     if(status == EFI_SUCCESS)
     {
       changeDirection(key, &direction);
+      firstMove = FALSE;
     }
     
     moveSnake(snakeParts, snakeSize, direction, screenWidth, screenHeight);
+    if(checkCollision(snakeParts, snakeSize) && !firstMove)
+    {
+      break;
+    }
 
     ClearGrid(&MainGrid);
     status = drawSnake(&MainGrid, snakeParts, snakeSize, &Red);
