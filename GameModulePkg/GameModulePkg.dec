@@ -39,7 +39,6 @@
   gEfiGameModulePkgTokenSpaceGuid.PcdTestTimes|60|UINT32|0x40000006
 
   gEfiGameModulePkgTokenSpaceGuid.PcdTestFramerate|15|UINT32|0x40000007
-
   
 
 [Guids]

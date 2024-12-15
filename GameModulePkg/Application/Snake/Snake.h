@@ -25,32 +25,26 @@ typedef enum Direction
 } Direction;
 
 EFI_SIMPLE_TEXT_INPUT_PROTOCOL  *cin  = NULL; 
+EFI_RNG_PROTOCOL *RngProtocol = NULL;
+
 void initGlobalVariables(EFI_HANDLE handle, EFI_SYSTEM_TABLE *SystemTable)
 {
     cin = SystemTable->ConIn;
+    gBS->LocateProtocol(&gEfiRngProtocolGuid, NULL, (VOID **)&RngProtocol);
+
 }
 
 UINT32 RandomRange(UINT32 Min, UINT32 Max)
 {
-    EFI_RNG_PROTOCOL *RngProtocol = NULL;
     EFI_STATUS Status;
     UINT32 RandomValue = 0;
 
-    // Locate the RNG Protocol
-    Status = gBS->LocateProtocol(&gEfiRngProtocolGuid, NULL, (VOID **)&RngProtocol);
-    if (EFI_ERROR(Status))
-    {
-        return Min; // Fallback to Min if RNG is not available
-    }
-
-    // Generate a random number
     Status = RngProtocol->GetRNG(RngProtocol, NULL, sizeof(RandomValue), (UINT8 *)&RandomValue);
     if (EFI_ERROR(Status))
     {
-        return Min; // Fallback to Min if RNG generation fails
+        return Min; 
     }
 
-    // Scale the random number to the desired range
     if (Max > Min)
     {
         RandomValue = Min + (RandomValue % (Max - Min + 1));

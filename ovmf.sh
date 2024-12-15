@@ -84,4 +84,6 @@ OPTS="$OPTS -device virtio-net-pci,netdev=net0,romfile="
 # system driver support. OVMF supports it too.
 OPTS="$OPTS -device qxl-vga"
 
+# Enables RNG in QUEMU 
+OPTS="$OPTS -device virtio-rng-pci"
 qemu-system-x86_64 $OPTS

@@ -74,7 +74,6 @@ EFIAPI SnakeMain(
   }
 
   initSnake(snakeParts, snakeSize);
-  generateRandomPoint(&food, snakeParts, snakeSize, &MainGrid, &Green);
   ClearScreen(&GraphicsLibData);
   UpdateVideoBuffer(&GraphicsLibData);
 
@@ -108,6 +107,7 @@ EFIAPI SnakeMain(
 
     ClearGrid(&MainGrid);
     status = drawSnake(&MainGrid, snakeParts, snakeSize, &Red);
+    generateRandomPoint(&food, snakeParts, snakeSize, &MainGrid, &Green);
     DrawGrid(&GraphicsLibData, &MainGrid, 0, 0);
     UpdateVideoBuffer(&GraphicsLibData);
   }
