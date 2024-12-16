@@ -42,7 +42,6 @@ EFIAPI SnakeMain(
   Direction nextDirection = NONE;
   BOOLEAN firstMove = TRUE;
   Point food;
-  BOOLEAN foodEaten = TRUE;
   UINT32 subFrames = 0;
   UINT32 score = 0;
 
@@ -79,7 +78,7 @@ EFIAPI SnakeMain(
   }
 
   printStartMessage(&GraphicsLibData, White, Black, screenWidth, screenHeight);
-  while(1)
+  while (1)
   {
     keyStatus = cin->ReadKeyStroke(cin, &key);
     if (keyStatus == EFI_SUCCESS)
@@ -89,6 +88,7 @@ EFIAPI SnakeMain(
   }
 
   initSnake(snakeParts, snakeSize);
+  generateRandomPoint(&food, snakeParts, snakeSize, &MainGrid, &Green, subFrames);
   ClearScreen(&GraphicsLibData);
   UpdateVideoBuffer(&GraphicsLibData);
 
@@ -123,17 +123,14 @@ EFIAPI SnakeMain(
     ClearGrid(&MainGrid);
     drawSnake(&MainGrid, snakeParts, snakeSize, &Red);
     drawFood(&MainGrid, food, &Green);
-    if(foodEaten)
-    {
-      generateRandomPoint(&food, snakeParts, snakeSize, &MainGrid, &Green, subFrames);
-      foodEaten = FALSE;
-    }
+
     if (checkIfSnakeAteFood(snakeParts, snakeSize, food))
     {
       snakeSize++;
-      score+=10;
-      foodEaten = TRUE;
+      score += 10;
+      generateRandomPoint(&food, snakeParts, snakeSize, &MainGrid, &Green, subFrames);
     }
+
     ClearScreen(&GraphicsLibData);
     DrawGrid(&GraphicsLibData, &MainGrid, 0, 32);
     drawScore(&GraphicsLibData, White, Black, score, screenWidth, screenHeight);
@@ -141,7 +138,7 @@ EFIAPI SnakeMain(
   }
 
   DeleteGrid(&MainGrid);
-  printGameOverMessage(&GraphicsLibData, White, Black, Red,  screenWidth, screenHeight, score);
+  printGameOverMessage(&GraphicsLibData, White, Black, Red, screenWidth, screenHeight, score);
   while (1)
   {
     keyStatus = cin->ReadKeyStroke(cin, &key);
