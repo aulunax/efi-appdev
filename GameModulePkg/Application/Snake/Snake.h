@@ -222,7 +222,24 @@ void generateRandomPoint(Point *point, Point *snakeParts, UINT32 snakeSize, GAME
         point->x = simple_rng(seed, 0, HORIZONTAL_CELS - 1);
         point->y = simple_rng(seed, 0, VERTICAL_CELS - 1);
     }
-    FillCellInGrid(grid, point->x, point->y, color);
 }
+
+BOOLEAN checkIfSnakeAteFood(Point *snakeParts, UINT32 snakeSize, Point food)
+{
+    if (snakeParts[0].x == food.x && snakeParts[0].y == food.y)
+    {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+void growSnake(Point *snakeParts, UINT32 *snakeSize, Point food)
+{
+    snakeParts[*snakeSize].x = food.x;
+    snakeParts[*snakeSize].y = food.y;
+    *snakeSize += 1;
+}
+
+
 
 #endif

@@ -35,11 +35,12 @@ EFIAPI SnakeMain(
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL Green = {0, 255, 0, 0};
   GAME_GRAPHICS_LIB_GRID MainGrid;
   Point snakeParts[MAX_SNAKE_SIZE];
-  UINT32 snakeSize = 20;
+  UINT32 snakeSize = 1;
   Direction direction = NONE;
   Direction nextDirection = NONE;
   BOOLEAN firstMove = TRUE;
   Point food;
+  BOOLEAN foodEaten = TRUE;
   UINT32 subFrames = 0;
 
   status = InitializeGraphicMode(&GraphicsLibData);
@@ -108,7 +109,17 @@ EFIAPI SnakeMain(
 
     ClearGrid(&MainGrid);
     status = drawSnake(&MainGrid, snakeParts, snakeSize, &Red);
-    generateRandomPoint(&food, snakeParts, snakeSize, &MainGrid, &Green, subFrames);
+    FillCellInGrid(&MainGrid, food.x, food.y, &Green);
+    if(foodEaten)
+    {
+      generateRandomPoint(&food, snakeParts, snakeSize, &MainGrid, &Green, subFrames);
+      foodEaten = FALSE;
+    }
+    if (checkIfSnakeAteFood(snakeParts, snakeSize, food))
+    {
+      snakeSize++;
+      foodEaten = TRUE;
+    }
     DrawGrid(&GraphicsLibData, &MainGrid, 0, 0);
     UpdateVideoBuffer(&GraphicsLibData);
   }
