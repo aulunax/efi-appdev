@@ -33,6 +33,8 @@ EFIAPI SnakeMain(
   GAME_GRAPHICS_LIB_DATA GraphicsLibData;
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL Red = {0, 0, 255, 0};
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL Green = {0, 255, 0, 0};
+  EFI_GRAPHICS_OUTPUT_BLT_PIXEL Black = {0, 0, 0, 0};
+  EFI_GRAPHICS_OUTPUT_BLT_PIXEL White = {255, 255, 255, 0};
   GAME_GRAPHICS_LIB_GRID MainGrid;
   Point snakeParts[MAX_SNAKE_SIZE];
   UINT32 snakeSize = 1;
@@ -42,7 +44,7 @@ EFIAPI SnakeMain(
   Point food;
   BOOLEAN foodEaten = TRUE;
   UINT32 subFrames = 0;
-
+  UINT32 score = 0;
   status = InitializeGraphicMode(&GraphicsLibData);
   if (status != EFI_SUCCESS)
   {
@@ -73,6 +75,16 @@ EFIAPI SnakeMain(
   {
     DEBUG((EFI_D_ERROR, "Failed to create grid.\n"));
     return status;
+  }
+
+  printStartMessage(&GraphicsLibData, White, Black, screenWidth, screenHeight);
+  while(1)
+  {
+    keyStatus = cin->ReadKeyStroke(cin, &key);
+    if (keyStatus == EFI_SUCCESS)
+    {
+      break;
+    }
   }
 
   initSnake(snakeParts, snakeSize);
@@ -108,8 +120,8 @@ EFIAPI SnakeMain(
     }
 
     ClearGrid(&MainGrid);
-    status = drawSnake(&MainGrid, snakeParts, snakeSize, &Red);
-    FillCellInGrid(&MainGrid, food.x, food.y, &Green);
+    drawSnake(&MainGrid, snakeParts, snakeSize, &Red);
+    drawFood(&MainGrid, food, &Green);
     if(foodEaten)
     {
       generateRandomPoint(&food, snakeParts, snakeSize, &MainGrid, &Green, subFrames);
@@ -118,6 +130,7 @@ EFIAPI SnakeMain(
     if (checkIfSnakeAteFood(snakeParts, snakeSize, food))
     {
       snakeSize++;
+      score+=10;
       foodEaten = TRUE;
     }
     DrawGrid(&GraphicsLibData, &MainGrid, 0, 0);
@@ -125,6 +138,17 @@ EFIAPI SnakeMain(
   }
 
   DeleteGrid(&MainGrid);
+  printGameOverMessage(&GraphicsLibData, White, Black, Red,  screenWidth, screenHeight, score);
+  while (1)
+  {
+    keyStatus = cin->ReadKeyStroke(cin, &key);
+    if (keyStatus == EFI_SUCCESS)
+    {
+      break;
+    }
+  }
+  ClearScreen(&GraphicsLibData);
+  UpdateVideoBuffer(&GraphicsLibData);
   FinishGraphicMode(&GraphicsLibData);
   return EFI_SUCCESS;
 }

@@ -7,13 +7,14 @@
 
 #define HORIZONTAL_CELS 50
 #define VERTICAL_CELS 50
-#define MAX_SNAKE_SIZE HORIZONTAL_CELS *VERTICAL_CELS
+#define MAX_SNAKE_SIZE HORIZONTAL_CELS * VERTICAL_CELS
 
 typedef struct Point
 {
     UINT32 x;
     UINT32 y;
 } Point;
+
 
 typedef enum Direction
 {
@@ -240,6 +241,33 @@ void growSnake(Point *snakeParts, UINT32 *snakeSize, Point food)
     *snakeSize += 1;
 }
 
+void drawFood(GAME_GRAPHICS_LIB_GRID *grid, Point food, EFI_GRAPHICS_OUTPUT_BLT_PIXEL *color)
+{
+    FillCellInGrid(grid, food.x, food.y, color);
+}
+
+void printStartMessage(GAME_GRAPHICS_LIB_DATA *GraphicsLibData, EFI_GRAPHICS_OUTPUT_BLT_PIXEL White, EFI_GRAPHICS_OUTPUT_BLT_PIXEL Black, UINT32 screenWidth, UINT32 screenHeight)
+{
+
+    ClearScreen(GraphicsLibData);
+    DrawText(GraphicsLibData, screenWidth/2 - 272,  screenHeight/2 - 32, "Welcome to Snake!", &White, &Black, 4);
+    DrawText(GraphicsLibData, screenWidth/2 - 176, screenHeight/2 + 16, "Use arrow keys to move", &White, &Black, 2);
+    DrawText(GraphicsLibData, screenWidth/2 - 200, screenHeight/2 + 48, "Press any key to start...", &White, &Black, 2);
+    UpdateVideoBuffer(GraphicsLibData);
+}
+
+void printGameOverMessage(GAME_GRAPHICS_LIB_DATA *GraphicsLibData, EFI_GRAPHICS_OUTPUT_BLT_PIXEL White, EFI_GRAPHICS_OUTPUT_BLT_PIXEL Black, EFI_GRAPHICS_OUTPUT_BLT_PIXEL Red,  UINT32 screenWidth, UINT32 screenHeight, UINT32 score)
+{
+    CHAR8 textScore[16]; // Buffer to store the score as a string
+    // Convert score (UINT32) to string
+    AsciiSPrint(textScore, sizeof(textScore), "%u", score);
+    ClearScreen(GraphicsLibData);
+    DrawText(GraphicsLibData, screenWidth/2 - 160, screenHeight/2 - 32, "Game Over!", &Red, &Black, 4);
+    DrawText(GraphicsLibData, screenWidth/2 - 184, screenHeight/2 + 16, "Score: ", &White, &Black, 2);
+    DrawText(GraphicsLibData, screenWidth/2 - 72, screenHeight/2 + 16, textScore, &White, &Black, 2);
+    DrawText(GraphicsLibData, screenWidth/2 - 200, screenHeight/2 + 48, "Press any key to restart...", &White, &Black, 2);
+    UpdateVideoBuffer(GraphicsLibData);
+}
 
 
 #endif
