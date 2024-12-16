@@ -45,6 +45,7 @@ EFIAPI SnakeMain(
   BOOLEAN foodEaten = TRUE;
   UINT32 subFrames = 0;
   UINT32 score = 0;
+
   status = InitializeGraphicMode(&GraphicsLibData);
   if (status != EFI_SUCCESS)
   {
@@ -70,7 +71,7 @@ EFIAPI SnakeMain(
   UINT32 screenWidth = GraphicsLibData.Screen.HorizontalResolution;
   UINT32 screenHeight = GraphicsLibData.Screen.VerticalResolution;
 
-  status = CreateCustomGrid(&MainGrid, screenWidth, screenHeight, HORIZONTAL_CELS, VERTICAL_CELS, NULL);
+  status = CreateCustomGrid(&MainGrid, screenWidth, screenHeight - 32, HORIZONTAL_CELLS, VERTICAL_CELLS, NULL); // subtract 32 for score display
   if (status != EFI_SUCCESS)
   {
     DEBUG((EFI_D_ERROR, "Failed to create grid.\n"));
@@ -133,7 +134,9 @@ EFIAPI SnakeMain(
       score+=10;
       foodEaten = TRUE;
     }
-    DrawGrid(&GraphicsLibData, &MainGrid, 0, 0);
+    ClearScreen(&GraphicsLibData);
+    DrawGrid(&GraphicsLibData, &MainGrid, 0, 32);
+    drawScore(&GraphicsLibData, White, Black, score, screenWidth, screenHeight);
     UpdateVideoBuffer(&GraphicsLibData);
   }
 

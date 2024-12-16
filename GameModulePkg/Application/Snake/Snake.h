@@ -5,9 +5,9 @@
 #include <Library/RngLib.h>
 #include <Protocol/Rng.h>
 
-#define HORIZONTAL_CELS 50
-#define VERTICAL_CELS 50
-#define MAX_SNAKE_SIZE HORIZONTAL_CELS * VERTICAL_CELS
+#define HORIZONTAL_CELLS 60
+#define VERTICAL_CELLS 50
+#define MAX_SNAKE_SIZE HORIZONTAL_CELLS * VERTICAL_CELLS
 
 typedef struct Point
 {
@@ -48,7 +48,7 @@ void updateHead(Point *point, Direction direction)
     {
         if (point->y == 0)
         {
-            point->y = HORIZONTAL_CELS - 1;
+            point->y = VERTICAL_CELLS - 1;
         }
         else
         {
@@ -57,7 +57,7 @@ void updateHead(Point *point, Direction direction)
     }
     if (direction == DOWN)
     {
-        if (point->y == VERTICAL_CELS - 1)
+        if (point->y == VERTICAL_CELLS - 1)
         {
             point->y = 0;
         }
@@ -70,7 +70,7 @@ void updateHead(Point *point, Direction direction)
     {
         if (point->x == 0)
         {
-            point->x = HORIZONTAL_CELS - 1;
+            point->x = HORIZONTAL_CELLS - 1;
         }
         else
         {
@@ -79,7 +79,7 @@ void updateHead(Point *point, Direction direction)
     }
     if (direction == RIGHT)
     {
-        if (point->x == HORIZONTAL_CELS - 1)
+        if (point->x == HORIZONTAL_CELLS - 1)
         {
             point->x = 0;
         }
@@ -216,12 +216,12 @@ BOOLEAN checkIfPointIsInSnake(Point *snakeParts, UINT32 snakeSize, Point point)
 
 void generateRandomPoint(Point *point, Point *snakeParts, UINT32 snakeSize, GAME_GRAPHICS_LIB_GRID *grid, EFI_GRAPHICS_OUTPUT_BLT_PIXEL *color, UINT32 seed)
 {
-    point->x = simple_rng(seed, 0, HORIZONTAL_CELS - 1);
-    point->y = simple_rng(seed, 0, VERTICAL_CELS - 1);
+    point->x = simple_rng(seed, 0, HORIZONTAL_CELLS - 1);
+    point->y = simple_rng(seed, 0, VERTICAL_CELLS - 1);
     while (checkIfPointIsInSnake(snakeParts, snakeSize, *point))
     {
-        point->x = simple_rng(seed, 0, HORIZONTAL_CELS - 1);
-        point->y = simple_rng(seed, 0, VERTICAL_CELS - 1);
+        point->x = simple_rng(seed, 0, HORIZONTAL_CELLS - 1);
+        point->y = simple_rng(seed, 0, VERTICAL_CELLS - 1);
     }
 }
 
@@ -263,10 +263,22 @@ void printGameOverMessage(GAME_GRAPHICS_LIB_DATA *GraphicsLibData, EFI_GRAPHICS_
     AsciiSPrint(textScore, sizeof(textScore), "%u", score);
     ClearScreen(GraphicsLibData);
     DrawText(GraphicsLibData, screenWidth/2 - 160, screenHeight/2 - 32, "Game Over!", &Red, &Black, 4);
-    DrawText(GraphicsLibData, screenWidth/2 - 184, screenHeight/2 + 16, "Score: ", &White, &Black, 2);
+    DrawText(GraphicsLibData, screenWidth/2 - 200, screenHeight/2 + 16, "Score: ", &White, &Black, 2);
     DrawText(GraphicsLibData, screenWidth/2 - 72, screenHeight/2 + 16, textScore, &White, &Black, 2);
-    DrawText(GraphicsLibData, screenWidth/2 - 200, screenHeight/2 + 48, "Press any key to restart...", &White, &Black, 2);
+    DrawText(GraphicsLibData, screenWidth/2 - 200, screenHeight/2 + 48, "Press any key to continue...", &White, &Black, 2);
     UpdateVideoBuffer(GraphicsLibData);
+}
+
+void drawScore(GAME_GRAPHICS_LIB_DATA *GraphicsLibData, EFI_GRAPHICS_OUTPUT_BLT_PIXEL White, EFI_GRAPHICS_OUTPUT_BLT_PIXEL Black, UINT32 score, UINT32 screenWidth, UINT32 screenHeight)
+{
+    CHAR8 textScore[16]; // Buffer to store the score as a string
+    // Convert score (UINT32) to string
+    DrawRectangle(GraphicsLibData, 0, 0, screenWidth, 32, &Black); // Clear the score display areas
+    AsciiSPrint(textScore, sizeof(textScore), "%u", score);
+    DrawText(GraphicsLibData, 0, 8, "Score: ", &White, &Black, 2);
+    DrawText(GraphicsLibData, 112, 8, textScore, &White, &Black, 2);
+    DrawRectangle(GraphicsLibData, 0, 31, screenWidth, 1, &White);
+
 }
 
 
