@@ -7,14 +7,13 @@
 
 #define HORIZONTAL_CELLS 60
 #define VERTICAL_CELLS 50
-#define MAX_SNAKE_SIZE HORIZONTAL_CELLS * VERTICAL_CELLS
+#define MAX_SNAKE_SIZE HORIZONTAL_CELLS *VERTICAL_CELLS
 
 typedef struct Point
 {
     UINT32 x;
     UINT32 y;
 } Point;
-
 
 typedef enum Direction
 {
@@ -27,6 +26,7 @@ typedef enum Direction
 
 EFI_SIMPLE_TEXT_INPUT_PROTOCOL *cin = NULL;
 UINT32 seedBase = 1;
+Point SnakeBeforeBack;
 
 void initGlobalVariables(EFI_HANDLE handle, EFI_SYSTEM_TABLE *SystemTable)
 {
@@ -119,6 +119,7 @@ EFI_STATUS drawSnake(GAME_GRAPHICS_LIB_GRID *grid, Point *snakeParts, UINT32 sna
 
 void moveSnake(Point *snakeParts, UINT32 snakeSize, Direction direction, UINT32 screenWidth, UINT32 screenHeight)
 {
+    SnakeBeforeBack = snakeParts[snakeSize - 1];
     for (UINT32 i = snakeSize - 1; i > 0; i--)
     {
         snakeParts[i] = snakeParts[i - 1];
@@ -250,22 +251,22 @@ void printStartMessage(GAME_GRAPHICS_LIB_DATA *GraphicsLibData, EFI_GRAPHICS_OUT
 {
 
     ClearScreen(GraphicsLibData);
-    DrawText(GraphicsLibData, screenWidth/2 - 272,  screenHeight/2 - 32, "Welcome to Snake!", &White, &Black, 4);
-    DrawText(GraphicsLibData, screenWidth/2 - 176, screenHeight/2 + 16, "Use arrow keys to move", &White, &Black, 2);
-    DrawText(GraphicsLibData, screenWidth/2 - 200, screenHeight/2 + 48, "Press any key to start...", &White, &Black, 2);
+    DrawText(GraphicsLibData, screenWidth / 2 - 272, screenHeight / 2 - 32, "Welcome to Snake!", &White, &Black, 4);
+    DrawText(GraphicsLibData, screenWidth / 2 - 176, screenHeight / 2 + 16, "Use arrow keys to move", &White, &Black, 2);
+    DrawText(GraphicsLibData, screenWidth / 2 - 200, screenHeight / 2 + 48, "Press any key to start...", &White, &Black, 2);
     UpdateVideoBuffer(GraphicsLibData);
 }
 
-void printGameOverMessage(GAME_GRAPHICS_LIB_DATA *GraphicsLibData, EFI_GRAPHICS_OUTPUT_BLT_PIXEL White, EFI_GRAPHICS_OUTPUT_BLT_PIXEL Black, EFI_GRAPHICS_OUTPUT_BLT_PIXEL Red,  UINT32 screenWidth, UINT32 screenHeight, UINT32 score)
+void printGameOverMessage(GAME_GRAPHICS_LIB_DATA *GraphicsLibData, EFI_GRAPHICS_OUTPUT_BLT_PIXEL White, EFI_GRAPHICS_OUTPUT_BLT_PIXEL Black, EFI_GRAPHICS_OUTPUT_BLT_PIXEL Red, UINT32 screenWidth, UINT32 screenHeight, UINT32 score)
 {
     CHAR8 textScore[16]; // Buffer to store the score as a string
     // Convert score (UINT32) to string
     AsciiSPrint(textScore, sizeof(textScore), "%u", score);
     ClearScreen(GraphicsLibData);
-    DrawText(GraphicsLibData, screenWidth/2 - 160, screenHeight/2 - 32, "Game Over!", &Red, &Black, 4);
-    DrawText(GraphicsLibData, screenWidth/2 - 200, screenHeight/2 + 16, "Score: ", &White, &Black, 2);
-    DrawText(GraphicsLibData, screenWidth/2 - 72, screenHeight/2 + 16, textScore, &White, &Black, 2);
-    DrawText(GraphicsLibData, screenWidth/2 - 200, screenHeight/2 + 48, "Press any key to continue...", &White, &Black, 2);
+    DrawText(GraphicsLibData, screenWidth / 2 - 160, screenHeight / 2 - 32, "Game Over!", &Red, &Black, 4);
+    DrawText(GraphicsLibData, screenWidth / 2 - 200, screenHeight / 2 + 16, "Score: ", &White, &Black, 2);
+    DrawText(GraphicsLibData, screenWidth / 2 - 72, screenHeight / 2 + 16, textScore, &White, &Black, 2);
+    DrawText(GraphicsLibData, screenWidth / 2 - 200, screenHeight / 2 + 48, "Press any key to continue...", &White, &Black, 2);
     UpdateVideoBuffer(GraphicsLibData);
 }
 
@@ -277,9 +278,6 @@ void drawScore(GAME_GRAPHICS_LIB_DATA *GraphicsLibData, EFI_GRAPHICS_OUTPUT_BLT_
     AsciiSPrint(textScore, sizeof(textScore), "%u", score);
     DrawText(GraphicsLibData, 0, 8, "Score: ", &White, &Black, 2);
     DrawText(GraphicsLibData, 112, 8, textScore, &White, &Black, 2);
-    DrawRectangle(GraphicsLibData, 0, 31, screenWidth, 1, &White);
-
 }
-
 
 #endif

@@ -90,6 +90,7 @@ EFIAPI SnakeMain(
   initSnake(snakeParts, snakeSize);
   generateRandomPoint(&food, snakeParts, snakeSize, &MainGrid, &Green, subFrames);
   ClearScreen(&GraphicsLibData);
+  DrawRectangle(&GraphicsLibData, 0, 31, screenWidth, 1, &White);
   UpdateVideoBuffer(&GraphicsLibData);
 
   while (1)
@@ -122,7 +123,6 @@ EFIAPI SnakeMain(
 
     ClearGrid(&MainGrid);
     drawSnake(&MainGrid, snakeParts, snakeSize, &Red);
-    drawFood(&MainGrid, food, &Green);
 
     if (checkIfSnakeAteFood(snakeParts, snakeSize, food))
     {
@@ -130,11 +130,15 @@ EFIAPI SnakeMain(
       score += 10;
       generateRandomPoint(&food, snakeParts, snakeSize, &MainGrid, &Green, subFrames);
     }
+    drawFood(&MainGrid, food, &Green);
 
-    ClearScreen(&GraphicsLibData);
     DrawGrid(&GraphicsLibData, &MainGrid, 0, 32);
     drawScore(&GraphicsLibData, White, Black, score, screenWidth, screenHeight);
-    UpdateVideoBuffer(&GraphicsLibData);
+
+    SmartUpdateVideoBuffer(&GraphicsLibData, 0, 0, 200, 32);
+    UpdateCellInGrid(&GraphicsLibData, &MainGrid, 0, 32, food.x, food.y);
+    UpdateCellInGrid(&GraphicsLibData, &MainGrid, 0, 32, snakeParts[0].x, snakeParts[0].y);
+    UpdateCellInGrid(&GraphicsLibData, &MainGrid, 0, 32, SnakeBeforeBack.x, SnakeBeforeBack.y);
   }
 
   DeleteGrid(&MainGrid);

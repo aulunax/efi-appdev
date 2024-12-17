@@ -133,6 +133,15 @@ EFIAPI
 UpdateVideoBuffer(
     IN GAME_GRAPHICS_LIB_DATA *Data);
 
+EFI_STATUS
+EFIAPI
+SmartUpdateVideoBuffer(
+    IN GAME_GRAPHICS_LIB_DATA *Data,
+    IN UINT32 x,
+    IN UINT32 y,
+    IN UINT32 HorizontalSize,
+    IN UINT32 VerticalSize);
+
 /// @brief Creates a grid with the specified number of cells and size of the cells
 /// @param Grid The grid data structure that will be created
 /// @param GridHorizontalSize Horizontal size of the grid
@@ -188,6 +197,16 @@ EFIAPI
 DrawGrid(
     IN GAME_GRAPHICS_LIB_DATA *Data,
     IN GAME_GRAPHICS_LIB_GRID *Grid,
+    IN UINT32 x,
+    IN UINT32 y);
+
+EFI_STATUS
+EFIAPI
+UpdateCellInGrid(
+    IN GAME_GRAPHICS_LIB_DATA *Data,
+    IN GAME_GRAPHICS_LIB_GRID *Grid,
+    IN UINT32 xOffset,
+    IN UINT32 yOffset,
     IN UINT32 x,
     IN UINT32 y);
 

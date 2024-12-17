@@ -225,6 +225,105 @@ UpdateVideoBuffer(
 
 EFI_STATUS
 EFIAPI
+SmartUpdateVideoBuffer(
+    IN GAME_GRAPHICS_LIB_DATA *Data,
+    IN UINT32 x,
+    IN UINT32 y,
+    IN UINT32 HorizontalSize,
+    IN UINT32 VerticalSize)
+{
+  EFI_STATUS Status;
+  UINT32 RealX = x;
+  UINT32 RealY = y;
+  UINT32 RealWidth = x + HorizontalSize < Data->Screen.HorizontalResolution ? HorizontalSize : Data->Screen.HorizontalResolution - x;
+  UINT32 RealHeight = y + VerticalSize < Data->Screen.VerticalResolution ? VerticalSize : Data->Screen.VerticalResolution - y;
+
+  DEBUG((DEBUG_INFO, "SmartUpdateVideoBuffer: x=%u, y=%u, HorizontalSize=%u, VerticalSize=%u\n", x, y, HorizontalSize, VerticalSize));
+  DEBUG((DEBUG_INFO, "SmartUpdateVideoBuffer: RealX=%u, RealY=%u, RealWidth=%u, RealHeight=%u\n", RealX, RealY, RealWidth, RealHeight));
+
+  Status = Data->GraphicsOutput->Blt(
+      Data->GraphicsOutput,
+      Data->BackBuffer,
+      EfiBltBufferToVideo,
+      RealX,
+      RealY,
+      RealX,
+      RealY,
+      RealWidth,
+      RealHeight,
+      Data->Screen.HorizontalResolution * sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL));
+  if (EFI_ERROR(Status))
+  {
+    DEBUG((DEBUG_ERROR, "UpdateVideoBuffer: Failed to update video buffer: %r\n", Status));
+    return Status;
+  }
+
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS
+EFIAPI
+UpdateCellInGrid(
+    IN GAME_GRAPHICS_LIB_DATA *Data,
+    IN GAME_GRAPHICS_LIB_GRID *Grid,
+    IN UINT32 xOffset,
+    IN UINT32 yOffset,
+    IN UINT32 x,
+    IN UINT32 y)
+{
+  UINT32 VerticalOffset = 0;
+  UINT32 HorizontalOffset = 0;
+  UINT32 CurrentCellHorizontalSize = 0;
+  UINT32 CurrentCellVerticalSize = 0;
+  UINT32 HorizontalRemainder = 0;
+  UINT32 VerticalRemainder = 0;
+
+  if ((Data == NULL) || (Grid == NULL))
+  {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  // Calculating the size of each cell using division with remainder,
+  // to not create unintended 1 pixel gaps
+  for (INT32 i = 0; i < Grid->VerticalCellsCount; i++)
+  {
+    CurrentCellVerticalSize = Grid->VerticalSize / Grid->VerticalCellsCount;
+    VerticalRemainder += Grid->VerticalSize % Grid->VerticalCellsCount;
+    if (VerticalRemainder >= Grid->VerticalCellsCount)
+    {
+      VerticalRemainder -= Grid->VerticalCellsCount;
+      CurrentCellVerticalSize++;
+    }
+    for (INT32 j = 0; j < Grid->HorizontalCellsCount; j++)
+    {
+      CurrentCellHorizontalSize = Grid->HorizontalSize / Grid->HorizontalCellsCount;
+      HorizontalRemainder += Grid->HorizontalSize % Grid->HorizontalCellsCount;
+      if (HorizontalRemainder >= Grid->HorizontalCellsCount)
+      {
+        HorizontalRemainder -= Grid->HorizontalCellsCount;
+        CurrentCellHorizontalSize++;
+      }
+
+      if (i == y && j == x)
+      {
+        SmartUpdateVideoBuffer(Data,
+                               xOffset + HorizontalOffset,
+                               yOffset + VerticalOffset,
+                               CurrentCellHorizontalSize,
+                               CurrentCellVerticalSize);
+        return EFI_SUCCESS;
+      }
+
+      HorizontalOffset += CurrentCellHorizontalSize;
+    }
+    VerticalOffset += CurrentCellVerticalSize;
+    HorizontalOffset = 0;
+  }
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS
+EFIAPI
 CreateCustomGrid(
     IN OUT GAME_GRAPHICS_LIB_GRID *Grid,
     IN UINT32 GridHorizontalSize,
