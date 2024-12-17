@@ -95,20 +95,20 @@ EFIAPI SnakeMain(
   while (1)
   {
 
+    keyStatus = cin->ReadKeyStroke(cin, &key);
+    if (key.ScanCode == SCAN_ESC)
+    {
+      break;
+    }
+    if (keyStatus == EFI_SUCCESS)
+    {
+      firstMove = FALSE;
+      changeDirection(key, &nextDirection);
+    }
+    subFrames++;
     status = gBS->CheckEvent(FrameTimerEvent);
     if ((RETURN_STATUS)status == EFI_NOT_READY)
     {
-      keyStatus = cin->ReadKeyStroke(cin, &key);
-      if (key.ScanCode == SCAN_ESC)
-      {
-        break;
-      }
-      if (keyStatus == EFI_SUCCESS)
-      {
-        firstMove = FALSE;
-        changeDirection(key, &nextDirection);
-      }
-      subFrames++;
       continue;
     }
 
