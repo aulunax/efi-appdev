@@ -124,14 +124,18 @@ EFI_STATUS drawSnake(GAME_GRAPHICS_LIB_GRID *grid, Point *snakeParts, UINT32 sna
         FillCellInGrid(grid, SnakeBeforeBack.x, SnakeBeforeBack.y, &gBlack);
     }
 
-    for (UINT32 i = 0; i < snakeSize; i++)
+    // filling in last and first cell of the snake
+    status = FillCellInGrid(grid, snakeParts[0].x, snakeParts[0].y, color);
+    if (EFI_ERROR(status))
     {
-        status = FillCellInGrid(grid, snakeParts[i].x, snakeParts[i].y, color);
-        if (EFI_ERROR(status))
-        {
-            return status;
-        }
+        return status;
     }
+    status = FillCellInGrid(grid, snakeParts[snakeSize - 1].x, snakeParts[snakeSize - 1].y, color);
+    if (EFI_ERROR(status))
+    {
+        return status;
+    }
+
     return EFI_SUCCESS;
 }
 

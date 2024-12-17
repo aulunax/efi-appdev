@@ -51,6 +51,7 @@ typedef struct
     UINT32 HorizontalCellsCount;                 // Number of horizontal cells in the grid
     UINT32 VerticalCellsCount;                   // Number of vertical cells in the grid
     EFI_GRAPHICS_OUTPUT_BLT_PIXEL *ColorsBitmap; // Bitmap that stores the color of each cell in the grid
+    BOOLEAN *DirtyBitmap;                        // Bitmap that stores the information about which cells have been changed
 } GAME_GRAPHICS_LIB_GRID;
 
 /// @brief Grid cell pattern data structure

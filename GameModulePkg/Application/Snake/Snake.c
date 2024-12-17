@@ -98,6 +98,7 @@ EFIAPI SnakeMain(
   drawScore(&GraphicsLibData, White, Black, score, screenWidth, screenHeight);
   DrawRectangle(&GraphicsLibData, 0, 31, screenWidth, 1, &White);
   displayFpsCounter(&GraphicsLibData, &frames);
+  DrawGrid(&GraphicsLibData, &MainGrid, 0, 32);
   UpdateVideoBuffer(&GraphicsLibData);
 
   status = gBS->CreateEvent(EVT_TIMER | EVT_NOTIFY_SIGNAL, TPL_CALLBACK, FpsDisplayCallback, &FpsContext, &FpsDisplayEvent);
@@ -153,13 +154,20 @@ EFIAPI SnakeMain(
       score += 10;
       snakeAteFood = TRUE;
       generateRandomPoint(&food, snakeParts, snakeSize, &MainGrid, &Green, subFrames);
+
       drawScore(&GraphicsLibData, White, Black, score, screenWidth, screenHeight);
-      SmartUpdateVideoBuffer(&GraphicsLibData, 112, 8, 160, 16);
+      // update score rectangle
+      SmartUpdateVideoBuffer(&GraphicsLibData, 112, 8, 96, 16);
     }
 
     drawFood(&MainGrid, food, &Green);
     DrawGrid(&GraphicsLibData, &MainGrid, 0, 32);
-    UpdateCellInGrid(&GraphicsLibData, &MainGrid, 0, 32, food.x, food.y);
+
+    if (snakeAteFood)
+    {
+      UpdateCellInGrid(&GraphicsLibData, &MainGrid, 0, 32, food.x, food.y);
+    }
+
     UpdateCellInGrid(&GraphicsLibData, &MainGrid, 0, 32, snakeParts[0].x, snakeParts[0].y);
     UpdateCellInGrid(&GraphicsLibData, &MainGrid, 0, 32, SnakeBeforeBack.x, SnakeBeforeBack.y);
   }

@@ -293,6 +293,12 @@ UpdateCellInGrid(
     }
     for (INT32 j = 0; j < Grid->HorizontalCellsCount; j++)
     {
+      // Ignoring cells in a row until we are in a correct row
+      if (i != y)
+      {
+        continue;
+      }
+
       CurrentCellHorizontalSize = Grid->HorizontalSize / Grid->HorizontalCellsCount;
       HorizontalRemainder += Grid->HorizontalSize % Grid->HorizontalCellsCount;
       if (HorizontalRemainder >= Grid->HorizontalCellsCount)
@@ -358,6 +364,9 @@ CreateCustomGrid(
     SetMem(Grid->ColorsBitmap, HorizontalCellsCount * VerticalCellsCount * sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL), 0);
   }
 
+  Grid->DirtyBitmap = AllocatePool(HorizontalCellsCount * VerticalCellsCount * sizeof(BOOLEAN));
+  SetMem(Grid->DirtyBitmap, HorizontalCellsCount * VerticalCellsCount * sizeof(BOOLEAN), TRUE);
+
   return EFI_SUCCESS;
 }
 
@@ -402,14 +411,19 @@ DrawGrid(
         CurrentCellHorizontalSize++;
       }
 
-      // Intentionally ignoring return status of DrawRectangle
-      // This allows for the grid to be fully drawn even if some cells are off screen
-      DrawRectangle(Data,
-                    x + HorizontalOffset,
-                    y + VerticalOffset,
-                    CurrentCellHorizontalSize,
-                    CurrentCellVerticalSize,
-                    &Grid->ColorsBitmap[i * Grid->HorizontalCellsCount + j]);
+      if (Grid->DirtyBitmap[i * Grid->HorizontalCellsCount + j])
+      {
+        // Intentionally ignoring return status of DrawRectangle
+        // This allows for the grid to be fully drawn even if some cells are off screen
+        DrawRectangle(Data,
+                      x + HorizontalOffset,
+                      y + VerticalOffset,
+                      CurrentCellHorizontalSize,
+                      CurrentCellVerticalSize,
+                      &Grid->ColorsBitmap[i * Grid->HorizontalCellsCount + j]);
+
+        Grid->DirtyBitmap[i * Grid->HorizontalCellsCount + j] = FALSE;
+      }
 
       HorizontalOffset += CurrentCellHorizontalSize;
     }
@@ -434,6 +448,7 @@ FillCellInGrid(
   }
 
   Grid->ColorsBitmap[y * Grid->HorizontalCellsCount + x] = *Color;
+  Grid->DirtyBitmap[y * Grid->HorizontalCellsCount + x] = TRUE;
   return EFI_SUCCESS;
 }
 
@@ -452,6 +467,11 @@ DeleteGrid(
     FreePool(Grid->ColorsBitmap);
   }
 
+  if (Grid->DirtyBitmap != NULL)
+  {
+    FreePool(Grid->DirtyBitmap);
+  }
+
   return EFI_SUCCESS;
 }
 
@@ -466,6 +486,7 @@ ClearGrid(
   }
 
   SetMem(Grid->ColorsBitmap, Grid->HorizontalCellsCount * Grid->VerticalCellsCount * sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL), 0);
+  SetMem(Grid->DirtyBitmap, Grid->HorizontalCellsCount * Grid->VerticalCellsCount * sizeof(BOOLEAN), TRUE);
 
   return EFI_SUCCESS;
 }
