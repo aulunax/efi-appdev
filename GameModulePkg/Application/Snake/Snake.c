@@ -27,6 +27,7 @@ EFIAPI SnakeMain(
   initGlobalVariables(ImageHandle, SystemTable);
 
   EFI_EVENT FrameTimerEvent;
+  EFI_EVENT FpsDisplayEvent;
   EFI_INPUT_KEY key;
   EFI_STATUS status;
   EFI_STATUS keyStatus;
@@ -43,7 +44,10 @@ EFIAPI SnakeMain(
   BOOLEAN firstMove = TRUE;
   Point food;
   UINT32 subFrames = 0;
+  UINT32 frames = 0;
   UINT32 score = 0;
+
+  FPS_CONTEXT FpsContext = {&frames, &GraphicsLibData};
 
   status = InitializeGraphicMode(&GraphicsLibData);
   if (status != EFI_SUCCESS)
@@ -90,8 +94,26 @@ EFIAPI SnakeMain(
   initSnake(snakeParts, snakeSize);
   generateRandomPoint(&food, snakeParts, snakeSize, &MainGrid, &Green, subFrames);
   ClearScreen(&GraphicsLibData);
+  drawFood(&MainGrid, food, &Green);
+  drawScore(&GraphicsLibData, White, Black, score, screenWidth, screenHeight);
   DrawRectangle(&GraphicsLibData, 0, 31, screenWidth, 1, &White);
+  displayFpsCounter(&GraphicsLibData, &frames);
   UpdateVideoBuffer(&GraphicsLibData);
+
+  status = gBS->CreateEvent(EVT_TIMER | EVT_NOTIFY_SIGNAL, TPL_CALLBACK, FpsDisplayCallback, &FpsContext, &FpsDisplayEvent);
+  if (status != EFI_SUCCESS)
+  {
+    Print(L"Failed to create timer event: %r\n", status);
+    return status;
+  }
+
+  status = gBS->SetTimer(FpsDisplayEvent, TimerPeriodic, FPS_DISPLAY_RATE);
+  if (status != EFI_SUCCESS)
+  {
+    Print(L"Failed to set timer: %r\n", status);
+    gBS->CloseEvent(FpsDisplayEvent);
+    return status;
+  }
 
   while (1)
   {
@@ -112,6 +134,7 @@ EFIAPI SnakeMain(
     {
       continue;
     }
+    frames++;
 
     setNewDirection(&direction, nextDirection);
 
@@ -121,25 +144,28 @@ EFIAPI SnakeMain(
       break;
     }
 
-    ClearGrid(&MainGrid);
     drawSnake(&MainGrid, snakeParts, snakeSize, &Red);
+    snakeAteFood = FALSE;
 
     if (checkIfSnakeAteFood(snakeParts, snakeSize, food))
     {
       snakeSize++;
       score += 10;
+      snakeAteFood = TRUE;
       generateRandomPoint(&food, snakeParts, snakeSize, &MainGrid, &Green, subFrames);
+      drawScore(&GraphicsLibData, White, Black, score, screenWidth, screenHeight);
+      SmartUpdateVideoBuffer(&GraphicsLibData, 112, 8, 160, 16);
     }
+
     drawFood(&MainGrid, food, &Green);
-
     DrawGrid(&GraphicsLibData, &MainGrid, 0, 32);
-    drawScore(&GraphicsLibData, White, Black, score, screenWidth, screenHeight);
-
-    SmartUpdateVideoBuffer(&GraphicsLibData, 0, 0, 200, 32);
     UpdateCellInGrid(&GraphicsLibData, &MainGrid, 0, 32, food.x, food.y);
     UpdateCellInGrid(&GraphicsLibData, &MainGrid, 0, 32, snakeParts[0].x, snakeParts[0].y);
     UpdateCellInGrid(&GraphicsLibData, &MainGrid, 0, 32, SnakeBeforeBack.x, SnakeBeforeBack.y);
   }
+
+  gBS->CloseEvent(FrameTimerEvent);
+  gBS->CloseEvent(FpsDisplayEvent);
 
   DeleteGrid(&MainGrid);
   printGameOverMessage(&GraphicsLibData, White, Black, Red, screenWidth, screenHeight, score);
@@ -153,6 +179,8 @@ EFIAPI SnakeMain(
   }
   ClearScreen(&GraphicsLibData);
   UpdateVideoBuffer(&GraphicsLibData);
+
   FinishGraphicMode(&GraphicsLibData);
+
   return EFI_SUCCESS;
 }

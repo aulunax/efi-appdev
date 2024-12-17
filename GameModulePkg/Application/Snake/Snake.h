@@ -9,6 +9,9 @@
 #define VERTICAL_CELLS 50
 #define MAX_SNAKE_SIZE HORIZONTAL_CELLS *VERTICAL_CELLS
 
+#define FPS_DISPLAY_RATE_SECONDS 3
+#define FPS_DISPLAY_RATE (FPS_DISPLAY_RATE_SECONDS * 10000000)
+
 typedef struct Point
 {
     UINT32 x;
@@ -24,9 +27,19 @@ typedef enum Direction
     NONE
 } Direction;
 
+typedef struct FPS_CONTEXT
+{
+    UINT32 *FrameCount;
+    GAME_GRAPHICS_LIB_DATA *Data;
+} FPS_CONTEXT;
+
 EFI_SIMPLE_TEXT_INPUT_PROTOCOL *cin = NULL;
 UINT32 seedBase = 1;
-Point SnakeBeforeBack;
+Point SnakeBeforeBack = {0, 0};
+BOOLEAN snakeAteFood = FALSE;
+
+EFI_GRAPHICS_OUTPUT_BLT_PIXEL gBlack = {0, 0, 0, 0};
+EFI_GRAPHICS_OUTPUT_BLT_PIXEL gWhite = {255, 255, 255, 0};
 
 void initGlobalVariables(EFI_HANDLE handle, EFI_SYSTEM_TABLE *SystemTable)
 {
@@ -106,6 +119,11 @@ void initSnake(Point *snakeParts, UINT32 snakeSize)
 EFI_STATUS drawSnake(GAME_GRAPHICS_LIB_GRID *grid, Point *snakeParts, UINT32 snakeSize, EFI_GRAPHICS_OUTPUT_BLT_PIXEL *color)
 {
     EFI_STATUS status;
+    if (!snakeAteFood)
+    {
+        FillCellInGrid(grid, SnakeBeforeBack.x, SnakeBeforeBack.y, &gBlack);
+    }
+
     for (UINT32 i = 0; i < snakeSize; i++)
     {
         status = FillCellInGrid(grid, snakeParts[i].x, snakeParts[i].y, color);
@@ -119,11 +137,15 @@ EFI_STATUS drawSnake(GAME_GRAPHICS_LIB_GRID *grid, Point *snakeParts, UINT32 sna
 
 void moveSnake(Point *snakeParts, UINT32 snakeSize, Direction direction, UINT32 screenWidth, UINT32 screenHeight)
 {
-    SnakeBeforeBack = snakeParts[snakeSize - 1];
+    if (!snakeAteFood)
+    {
+        SnakeBeforeBack = snakeParts[snakeSize - 1];
+    }
     for (UINT32 i = snakeSize - 1; i > 0; i--)
     {
         snakeParts[i] = snakeParts[i - 1];
     }
+
     updateHead(&snakeParts[0], direction);
 }
 
@@ -274,10 +296,31 @@ void drawScore(GAME_GRAPHICS_LIB_DATA *GraphicsLibData, EFI_GRAPHICS_OUTPUT_BLT_
 {
     CHAR8 textScore[16]; // Buffer to store the score as a string
     // Convert score (UINT32) to string
-    DrawRectangle(GraphicsLibData, 0, 0, screenWidth, 32, &Black); // Clear the score display areas
     AsciiSPrint(textScore, sizeof(textScore), "%u", score);
     DrawText(GraphicsLibData, 0, 8, "Score: ", &White, &Black, 2);
     DrawText(GraphicsLibData, 112, 8, textScore, &White, &Black, 2);
+}
+
+void displayFpsCounter(GAME_GRAPHICS_LIB_DATA *GraphicsLibData, UINT32 *frames)
+{
+
+    UINT32 FPS = *frames / FPS_DISPLAY_RATE_SECONDS;
+    CHAR8 textFPS[16];
+
+    AsciiSPrint(textFPS, sizeof(textFPS), "%u", FPS);
+    DrawText(GraphicsLibData, GraphicsLibData->Screen.HorizontalResolution - 120, 8, "FPS: ", &gWhite, &gBlack, 2);
+    DrawText(GraphicsLibData, GraphicsLibData->Screen.HorizontalResolution - 56, 8, textFPS, &gWhite, &gBlack, 2);
+    SmartUpdateVideoBuffer(GraphicsLibData, GraphicsLibData->Screen.HorizontalResolution - 120, 8, 120, 16);
+}
+
+VOID EFIAPI FpsDisplayCallback(IN EFI_EVENT Event, IN VOID *Context)
+{
+    UINT32 *Frames = ((FPS_CONTEXT *)Context)->FrameCount;
+    GAME_GRAPHICS_LIB_DATA *data = ((FPS_CONTEXT *)Context)->Data;
+
+    displayFpsCounter(data, Frames);
+
+    *Frames = 0;
 }
 
 #endif

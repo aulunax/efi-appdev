@@ -238,9 +238,6 @@ SmartUpdateVideoBuffer(
   UINT32 RealWidth = x + HorizontalSize < Data->Screen.HorizontalResolution ? HorizontalSize : Data->Screen.HorizontalResolution - x;
   UINT32 RealHeight = y + VerticalSize < Data->Screen.VerticalResolution ? VerticalSize : Data->Screen.VerticalResolution - y;
 
-  DEBUG((DEBUG_INFO, "SmartUpdateVideoBuffer: x=%u, y=%u, HorizontalSize=%u, VerticalSize=%u\n", x, y, HorizontalSize, VerticalSize));
-  DEBUG((DEBUG_INFO, "SmartUpdateVideoBuffer: RealX=%u, RealY=%u, RealWidth=%u, RealHeight=%u\n", RealX, RealY, RealWidth, RealHeight));
-
   Status = Data->GraphicsOutput->Blt(
       Data->GraphicsOutput,
       Data->BackBuffer,
