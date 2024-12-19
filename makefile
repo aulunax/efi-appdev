@@ -12,16 +12,16 @@ MDEMODULE_ACTIVE_PLATFORM := MdeModulePkg/MdeModulePkg.dsc
 OVMF_ACTIVE_PLATFORM := OvmfPkg/OvmfPkgX64.dsc
 TOOL_CHAIN_TAG := GCC5
 TARGET_ARCH := X64
-BUILD_TARGET := DEBUG
+BUILD_TARGET := RELEASE
 
 DISK_SIZEMB := 32
 
 APP_NAME ?= Test
 
 
-.PHONY: check-dependencies help all create_conf_dir create_qemu_dir create_disk_image add-app copy_ovmf build-basetools build-app build-ovmf
+.PHONY: _check-dependencies help all _create_conf_dir _create_qemu_dir _create_disk_image _add-app _copy_ovmf build-basetools build-app build-ovmf release
 
-check-dependencies:
+_check-dependencies:
 	@echo "Checking system dependencies..."
 	@command -v git >/dev/null 2>&1 || { echo "Error: git is not installed."; exit 1; }
 	@command -v make >/dev/null 2>&1 || { echo "Error: make is not installed."; exit 1; }
@@ -49,10 +49,10 @@ help:
 	@echo "================="
 	@echo "  help               - Display this help message"
 
-all: check-dependencies build-basetools build-app build-ovmf add-app copy_ovmf
-rebuild: check-dependencies build-app add-app copy_ovmf
+all: _check-dependencies build-basetools build-app build-ovmf _add-app _copy_ovmf
+rebuild: _check-dependencies build-app _add-app _copy_ovmf
 
-create_conf_dir:
+_create_conf_dir:
 	@if [ -d "Conf" ]; then \
 		echo "Skipping making Conf directory. It already exists."; \
 	else \
@@ -60,7 +60,7 @@ create_conf_dir:
 		echo "Created Conf directory."; \
 	fi
 
-build_basetools: check-dependencies
+build_basetools: _check-dependencies
 	@echo "Starting BaseTools build..."
 	@if [ -f "$(WORKSPACE)/edk2/BaseTools/Source/C/bin/BrotliCompress" ]; then \
 		echo "BaseTools build already completed. Ignoring..."; \
@@ -69,18 +69,18 @@ build_basetools: check-dependencies
 		. $(WORKSPACE)/edk2/edksetup.sh && cd edk2 && $(MAKE) -C BaseTools; \
 	fi 
 
-build-app: build_basetools create_conf_dir check-dependencies
-	@. $(WORKSPACE)/edk2/edksetup.sh && cd Conf && build -a $(TARGET_ARCH) -t $(TOOL_CHAIN_TAG) -p $(GAMEMODULE_ACTIVE_PLATFORM) -Y COMPILE_INFO -y BuildReport.log
+build-app: build_basetools _create_conf_dir _check-dependencies
+	@. $(WORKSPACE)/edk2/edksetup.sh && cd Conf && build -a $(TARGET_ARCH) -t $(TOOL_CHAIN_TAG) -p $(GAMEMODULE_ACTIVE_PLATFORM) -Y COMPILE_INFO -y BuildReport.log -b $(BUILD_TARGET)
 
-build-ovmf: build_basetools create_conf_dir check-dependencies
+build-ovmf: build_basetools _create_conf_dir _check-dependencies
 	@if [ -f "$(WORKSPACE)/Build/Ovmf$(TARGET_ARCH)/$(BUILD_TARGET)_$(TOOL_CHAIN_TAG)/FV/OVMF.fd" ]; then \
 		echo "Skipping build-ovmf: $(WORKSPACE)/Build/Ovmf$(TARGET_ARCH)/$(BUILD_TARGET)_$(TOOL_CHAIN_TAG)/FV/OVMF.fd already exists."; \
 	else \
 		echo "Building OVMF..."; \
-		. $(WORKSPACE)/edk2/edksetup.sh && cd Conf && build -a $(TARGET_ARCH) -t $(TOOL_CHAIN_TAG) -p $(OVMF_ACTIVE_PLATFORM); \
+		. $(WORKSPACE)/edk2/edksetup.sh && cd Conf && build -a $(TARGET_ARCH) -t $(TOOL_CHAIN_TAG) -p $(OVMF_ACTIVE_PLATFORM) -b $(BUILD_TARGET); \
 	fi
 
-create_qemu_dir:
+_create_qemu_dir:
 	@if [ -d "efi-qemu" ]; then \
 		echo "Removing efi-qemu directory..."; \
 		rm -r efi-qemu; \
@@ -89,7 +89,7 @@ create_qemu_dir:
 	@echo "Created efi-qemu directory."
 
 # Create disk image for the app
-create_disk_image: create_qemu_dir check-dependencies
+_create_disk_image: _create_qemu_dir _check-dependencies
 	@echo "Creating disk image for the app..."
 	@cd efi-qemu && \
 		dd if=/dev/zero of=app.disk bs=1 count=1 seek=$$(( $(DISK_SIZEMB) * 1024 * 1024 - 1 )) && \
@@ -97,7 +97,7 @@ create_disk_image: create_qemu_dir check-dependencies
 	@echo "Disk image created and formatted as FAT."
 
 # Add test app to the disk image
-add-app: create_disk_image build-app 
+_add-app: _create_disk_image build-app 
 	@mkdir -p efi-qemu/mnt_app
 	@if [ ! -f "$(WORKSPACE)/Build/GameModule/$(BUILD_TARGET)_$(TOOL_CHAIN_TAG)/$(TARGET_ARCH)/$(APP_NAME).efi" ]; then \
 		echo "$(WORKSPACE)/Build/GameModule/$(BUILD_TARGET)_$(TOOL_CHAIN_TAG)/$(TARGET_ARCH)/$(APP_NAME).efi not found"; \
@@ -109,7 +109,7 @@ add-app: create_disk_image build-app
 	@echo "Added EFI app to the disk image."
 
 # Copy OVMF firmware image to QEMU directory
-copy_ovmf: create_qemu_dir build-ovmf
+_copy_ovmf: _create_qemu_dir build-ovmf
 	@echo "Copying OVMF firmware image to QEMU directory..."
 	@cp "$(WORKSPACE)/Build/Ovmf$(TARGET_ARCH)/$(BUILD_TARGET)_$(TOOL_CHAIN_TAG)/FV/OVMF.fd" efi-qemu/ovmf.flash
 	@echo "OVMF firmware image copied."
@@ -118,6 +118,11 @@ clean:
 	rm -r $(WORKSPACE)/Build
 	rm -r $(WORKSPACE)/Conf
 	rm -r $(WORKSPACE)/efi-qemu
+
+release:
+	@echo "Starting release build of the app..."
+	@. $(WORKSPACE)/edk2/edksetup.sh && cd Conf && build -a $(TARGET_ARCH) -t $(TOOL_CHAIN_TAG) -p $(GAMEMODULE_ACTIVE_PLATFORM) -Y COMPILE_INFO -y BuildReport.log -b RELEASE
+	@echo "Release build done."
 
 run:
 	@./ovmf.sh

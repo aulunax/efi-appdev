@@ -38,8 +38,8 @@ EFIAPI SnakeMain(
   // Game graphics library structures
   GAME_GRAPHICS_LIB_DATA GraphicsLibData;
   GAME_GRAPHICS_LIB_GRID MainGrid;
-  UINT32 screenWidth = GraphicsLibData.Screen.HorizontalResolution;
-  UINT32 screenHeight = GraphicsLibData.Screen.VerticalResolution;
+  UINT32 screenWidth;
+  UINT32 screenHeight;
 
   // Game variables
   Point snakeParts[MAX_SNAKE_SIZE];
