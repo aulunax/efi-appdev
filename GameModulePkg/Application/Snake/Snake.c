@@ -22,33 +22,43 @@ EFIAPI SnakeMain(
     IN EFI_HANDLE ImageHandle,
     IN EFI_SYSTEM_TABLE *SystemTable)
 {
-
-  // initialize global variables
-  initGlobalVariables(ImageHandle, SystemTable);
-
+  // Uefi variables
+  EFI_STATUS status;
   EFI_EVENT FrameTimerEvent;
   EFI_EVENT FpsDisplayEvent;
-  EFI_INPUT_KEY key;
-  EFI_STATUS status;
   EFI_STATUS keyStatus;
-  GAME_GRAPHICS_LIB_DATA GraphicsLibData;
+  EFI_INPUT_KEY key;
+
+  // Colors definitions
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL Red = {0, 0, 255, 0};
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL Green = {0, 255, 0, 0};
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL Black = {0, 0, 0, 0};
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL White = {255, 255, 255, 0};
+
+  // Game graphics library structures
+  GAME_GRAPHICS_LIB_DATA GraphicsLibData;
   GAME_GRAPHICS_LIB_GRID MainGrid;
+  UINT32 screenWidth = GraphicsLibData.Screen.HorizontalResolution;
+  UINT32 screenHeight = GraphicsLibData.Screen.VerticalResolution;
+
+  // Game variables
   Point snakeParts[MAX_SNAKE_SIZE];
   UINT32 snakeSize = 1;
   Direction direction = NONE;
   Direction nextDirection = NONE;
   BOOLEAN firstMove = TRUE;
   Point food;
-  UINT32 subFrames = 0;
-  UINT32 frames = 0;
   UINT32 score = 0;
 
+  // Frame counting related variables
+  UINT32 subFrames = 0;
+  UINT32 frames = 0;
   FPS_CONTEXT FpsContext = {&frames, &GraphicsLibData};
 
+  // initialize global variables
+  initGlobalVariables(ImageHandle, SystemTable);
+
+  // Initialize the graphics library
   status = InitializeGraphicMode(&GraphicsLibData);
   if (status != EFI_SUCCESS)
   {
@@ -56,6 +66,7 @@ EFIAPI SnakeMain(
     return status;
   }
 
+  // Create a timer event for the game loop
   status = gBS->CreateEvent(EVT_TIMER, TPL_NOTIFY, NULL, NULL, &FrameTimerEvent);
   if (status != EFI_SUCCESS)
   {
@@ -63,6 +74,7 @@ EFIAPI SnakeMain(
     return status;
   }
 
+  // Set the timer event to fire every 1/FPS seconds
   status = gBS->SetTimer(FrameTimerEvent, TimerPeriodic, 10000000 / PcdGet32(PcdTestFramerate));
   if (status != EFI_SUCCESS)
   {
@@ -71,9 +83,11 @@ EFIAPI SnakeMain(
     return status;
   }
 
-  UINT32 screenWidth = GraphicsLibData.Screen.HorizontalResolution;
-  UINT32 screenHeight = GraphicsLibData.Screen.VerticalResolution;
+  // Get the screen resolution variables
+  screenWidth = GraphicsLibData.Screen.HorizontalResolution;
+  screenHeight = GraphicsLibData.Screen.VerticalResolution;
 
+  // Create the grid used for the game board
   status = CreateCustomGrid(&MainGrid, screenWidth, screenHeight - 32, HORIZONTAL_CELLS, VERTICAL_CELLS, NULL); // subtract 32 for score display
   if (status != EFI_SUCCESS)
   {
@@ -81,6 +95,7 @@ EFIAPI SnakeMain(
     return status;
   }
 
+  // Start screen handling
   printStartMessage(&GraphicsLibData, White, Black, screenWidth, screenHeight);
   while (1)
   {
@@ -91,8 +106,11 @@ EFIAPI SnakeMain(
     }
   }
 
+  // Initialize the game parameters
   initSnake(snakeParts, snakeSize);
-  generateRandomPoint(&food, snakeParts, snakeSize, &MainGrid, &Green, subFrames);
+  generateRandomPoint(&food, snakeParts, snakeSize, subFrames);
+
+  // Draw the initial screen state
   ClearScreen(&GraphicsLibData);
   drawFood(&MainGrid, food, &Green);
   drawScore(&GraphicsLibData, White, Black, score, screenWidth, screenHeight);
@@ -101,6 +119,7 @@ EFIAPI SnakeMain(
   DrawGrid(&GraphicsLibData, &MainGrid, 0, 32);
   UpdateVideoBuffer(&GraphicsLibData);
 
+  // Create a timer event for the FPS display
   status = gBS->CreateEvent(EVT_TIMER | EVT_NOTIFY_SIGNAL, TPL_CALLBACK, FpsDisplayCallback, &FpsContext, &FpsDisplayEvent);
   if (status != EFI_SUCCESS)
   {
@@ -108,6 +127,7 @@ EFIAPI SnakeMain(
     return status;
   }
 
+  // Set the timer event to fire every FPS_DISPLAY_RATE seconds
   status = gBS->SetTimer(FpsDisplayEvent, TimerPeriodic, FPS_DISPLAY_RATE);
   if (status != EFI_SUCCESS)
   {
@@ -116,9 +136,10 @@ EFIAPI SnakeMain(
     return status;
   }
 
+  // Main game loop
   while (1)
   {
-
+    // Input handling
     keyStatus = cin->ReadKeyStroke(cin, &key);
     if (key.ScanCode == SCAN_ESC)
     {
@@ -133,9 +154,14 @@ EFIAPI SnakeMain(
     status = gBS->CheckEvent(FrameTimerEvent);
     if ((RETURN_STATUS)status == EFI_NOT_READY)
     {
+      // If event hasn't been signaled, frame is not done yet. Jumping to start of the loop.
       continue;
     }
     frames++;
+
+    //
+    // Game logic
+    //
 
     setNewDirection(&direction, nextDirection);
 
@@ -153,7 +179,7 @@ EFIAPI SnakeMain(
       snakeSize++;
       score += 10;
       snakeAteFood = TRUE;
-      generateRandomPoint(&food, snakeParts, snakeSize, &MainGrid, &Green, subFrames);
+      generateRandomPoint(&food, snakeParts, snakeSize, subFrames);
 
       drawScore(&GraphicsLibData, White, Black, score, screenWidth, screenHeight);
       // update score rectangle
