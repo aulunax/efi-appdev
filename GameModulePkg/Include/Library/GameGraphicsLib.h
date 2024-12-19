@@ -9,14 +9,18 @@
 /// To use the library, the InitializeGraphicMode function must be called first, and the FinishGraphicMode function must be called after the library is no longer needed.
 ///
 /// @section Drawing
-/// All drawing functions change the back buffer, which is then copied to the video buffer with UpdateVideoBuffer.
-/// Therefore to see the changes on the screen, UpdateVideoBuffer must be called after all the drawing functions are done.
+/// All drawing functions change the back buffer, which is then copied to the video buffer with an update function.
+/// Therefore to see the changes on the screen, an update function must be called, for example UpdateVideoBuffer.
+/// It is possilble to update only a specific area of the screen, which can be done with the SmartUpdateVideoBuffer function.
 ///
 /// @section Grid
 /// The library provides a grid data structure that allows for easy drawing of a colored grid on the screen.
 /// The grid is divided into cells, each cell can be colored with a specific color, described by the ColorsBitmap field.
 /// To create a grid, use CreateCustomGrid, to draw the grid on the screen, use DrawGrid, to fill a cell in the grid, use FillCellInGrid, and to delete the grid, use DeleteGrid.
 /// Important to note is the fact, that the grid has to be deleted after it is no longer needed, to free the memory allocated by the grid.
+/// The grid can be cleared with the ClearGrid function, which paints all cells black.
+/// The UpdateCellInGrid function is used to update the video buffer with the corresponding area of the back buffer in the data structure at grid coordinates of the specified cell in the grid structure.
+///
 ///
 /// @section Text
 /// The library provides a function to draw a string of text on the screen. It uses a 8x8 font to draw each character.
@@ -39,11 +43,11 @@ typedef struct
 } GAME_GRAPHICS_LIB_DATA;
 
 /// @brief Grid data structure that allows for easy drawing of a colored grid on the screen
-///
+/// @details
 /// The grid is divided into cells, each cell can be colored with a specific color,
 /// described by the ColorsBitmap field.
 ///
-/// Related functions: CreateCustomGrid, DrawGrid, FillCellInGrid, DeleteGrid
+/// Related functions: CreateCustomGrid, DrawGrid, FillCellInGrid, DeleteGrid, ClearGrid, UpdateCellInGrid
 typedef struct
 {
     UINT32 HorizontalSize;                       // Total horizontal size of the grid
@@ -106,7 +110,7 @@ FinishGraphicMode(
 /// @param HorizontalSize Horizontal size of the rectangle
 /// @param VerticalSize Vertical size of the rectangle
 /// @return EFI_SUCCESS if the function executed successfully, otherwise an error code.
-/// @note Requires a call to UpdateVideoBuffer to see the changes on the screen
+/// @note Requires using a function that updates the video buffer to see the changes on the screen
 EFI_STATUS
 EFIAPI
 DrawRectangle(
@@ -120,20 +124,30 @@ DrawRectangle(
 /// @brief Clears the screen by painting it black
 /// @param Data The data structure that is used to store the library variables
 /// @return EFI_SUCCESS if the function executed successfully, otherwise an error code.
-/// @note Requires a call to UpdateVideoBuffer to see the changes on the screen
+/// @note Requires using a function that updates the video buffer to see the changes on the screen
 EFI_STATUS
 EFIAPI
 ClearScreen(
     IN GAME_GRAPHICS_LIB_DATA *Data);
 
-/// @brief Updates the video buffer with the back buffer in the library data structure
+/// @brief Updates the video buffer with the back buffer in the data structure
 /// @param Data The data structure that is used to store the library variables. It contains the back buffer that will be copied to the video buffer
 /// @return EFI_SUCCESS if the function executed successfully, otherwise an error code.
+/// @note This copies the back buffer in data structure to the video buffer using Blt BufferToVideo
 EFI_STATUS
 EFIAPI
 UpdateVideoBuffer(
     IN GAME_GRAPHICS_LIB_DATA *Data);
 
+/// @brief Updates the specified rectangle area of the video buffer with the corresponding area of the back buffer in the data structure
+/// @param Data The data structure that is used to store the library variables.
+/// @param x X coordinate of the top left corner of the area that will be updated
+/// @param y Y coordinate of the top left corner of the area that will be updated
+/// @param HorizontalSize Horizontal size of the area that will be updated
+/// @param VerticalSize Vertical size of the area that will be updated
+/// @return EFI_SUCCESS if the function executed successfully, otherwise an error code.
+/// @note This copies the specified area of the back buffer in data structure to the video buffer using Blt BufferToVideo
+/// @note Using this function is highly preferable to using UpdateVideoBuffer, since it can drastically reduce the amount of bytes that need to be copied to video buffer
 EFI_STATUS
 EFIAPI
 SmartUpdateVideoBuffer(
@@ -180,7 +194,7 @@ FillCellInGrid(
 /// @brief Clears the grid by painting all cells black
 /// @param Grid The grid data structure that will be cleared
 /// @return EFI_SUCCESS if the function executed successfully, otherwise an error code.
-/// @note Requires a call to UpdateVideoBuffer to see the changes on the screen
+/// @note Requires using a function that updates the video buffer to see the changes on the screen
 EFI_STATUS
 EFIAPI
 ClearGrid(
@@ -192,7 +206,7 @@ ClearGrid(
 /// @param x X coordinate of the top left corner of the grid
 /// @param y Y coordinate of the top left corner of the grid
 /// @return EFI_SUCCESS if the function executed successfully, otherwise an error code.
-/// @note Requires a call to UpdateVideoBuffer to see the changes on the screen
+/// @note Requires using a function that updates the video buffer to see the changes on the screen
 EFI_STATUS
 EFIAPI
 DrawGrid(
@@ -201,6 +215,15 @@ DrawGrid(
     IN UINT32 x,
     IN UINT32 y);
 
+/// @brief Updates the area of the video buffer with the corresponding area of the back buffer in the data structure at grid coordinates of the specified cell in the grid structure
+/// @param Data The data structure that is used to store the library variables
+/// @param Grid The grid data structure that will be used to update the video buffer
+/// @param xOffset X coordinate (pixel position) of the top left corner of the grid
+/// @param yOffset Y coordinate (pixel position) of the top left corner of the grid
+/// @param x X coordinate (index) of the cell in the grid
+/// @param y Y coordinate (index )of the cell in the grid
+/// @return EFI_SUCCESS if the function executed successfully, otherwise an error code.
+/// @note This function is used to update the video buffer with the corresponding area of the back buffer in the data structure at grid coordinates of the specified cell in the grid structure
 EFI_STATUS
 EFIAPI
 UpdateCellInGrid(
@@ -228,7 +251,7 @@ DeleteGrid(
 /// @param BackgroundColor The color of the background
 /// @param SizeMultipiler The size multipiler of the character. 1 is the original size of the font
 /// @return EFI_SUCCESS if the function executed successfully, otherwise an error code.
-/// @note Requires a call to UpdateVideoBuffer to see the changes on the screen
+/// @note Requires using a function that updates the video buffer to see the changes on the screen
 EFI_STATUS
 EFIAPI
 DrawCharacter(
@@ -249,7 +272,7 @@ DrawCharacter(
 /// @param BackgroundColor The color of the background
 /// @param SizeMultipiler The size multipiler of the text. 1 is the original size of the font
 /// @return EFI_SUCCESS if the function executed successfully, otherwise an error code.
-/// @note Requires a call to UpdateVideoBuffer to see the changes on the screen
+/// @note Requires using a function that updates the video buffer to see the changes on the screen
 EFI_STATUS
 EFIAPI
 DrawText(
