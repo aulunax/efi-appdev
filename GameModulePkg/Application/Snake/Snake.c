@@ -181,8 +181,8 @@ EFIAPI SnakeMain(
       snakeAteFood = TRUE;
       generateRandomPoint(&food, snakeParts, snakeSize, subFrames);
 
-      drawScore(&GraphicsLibData, White, Black, score, screenWidth, screenHeight);
       // update score rectangle
+      drawScore(&GraphicsLibData, White, Black, score, screenWidth, screenHeight);
       SmartUpdateVideoBuffer(&GraphicsLibData, 112, 8, 96, 16);
     }
 
@@ -198,10 +198,12 @@ EFIAPI SnakeMain(
     UpdateCellInGrid(&GraphicsLibData, &MainGrid, 0, 32, SnakeBeforeBack.x, SnakeBeforeBack.y);
   }
 
+  // Cleanup
   gBS->CloseEvent(FrameTimerEvent);
   gBS->CloseEvent(FpsDisplayEvent);
-
   DeleteGrid(&MainGrid);
+
+  // Game over screen handling
   printGameOverMessage(&GraphicsLibData, White, Black, Red, screenWidth, screenHeight, score);
   while (1)
   {
@@ -211,9 +213,9 @@ EFIAPI SnakeMain(
       break;
     }
   }
+
   ClearScreen(&GraphicsLibData);
   UpdateVideoBuffer(&GraphicsLibData);
-
   FinishGraphicMode(&GraphicsLibData);
 
   return EFI_SUCCESS;
