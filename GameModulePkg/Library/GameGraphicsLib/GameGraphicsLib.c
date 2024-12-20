@@ -227,16 +227,16 @@ EFI_STATUS
 EFIAPI
 SmartUpdateVideoBuffer(
     IN GAME_GRAPHICS_LIB_DATA *Data,
-    IN UINT32 x,
-    IN UINT32 y,
-    IN UINT32 HorizontalSize,
-    IN UINT32 VerticalSize)
+    IN INT32 x,
+    IN INT32 y,
+    IN INT32 HorizontalSize,
+    IN INT32 VerticalSize)
 {
   EFI_STATUS Status;
-  UINT32 RealX = x;
-  UINT32 RealY = y;
-  UINT32 RealWidth = x + HorizontalSize < Data->Screen.HorizontalResolution ? HorizontalSize : Data->Screen.HorizontalResolution - x;
-  UINT32 RealHeight = y + VerticalSize < Data->Screen.VerticalResolution ? VerticalSize : Data->Screen.VerticalResolution - y;
+  INT32 RealX = x < 0 ? 0 : x;
+  INT32 RealY = y < 0 ? 0 : y;
+  INT32 RealWidth = x + HorizontalSize < Data->Screen.HorizontalResolution ? HorizontalSize : Data->Screen.HorizontalResolution - x;
+  INT32 RealHeight = y + VerticalSize < Data->Screen.VerticalResolution ? VerticalSize : Data->Screen.VerticalResolution - y;
 
   Status = Data->GraphicsOutput->Blt(
       Data->GraphicsOutput,
@@ -251,7 +251,8 @@ SmartUpdateVideoBuffer(
       Data->Screen.HorizontalResolution * sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL));
   if (EFI_ERROR(Status))
   {
-    DEBUG((DEBUG_ERROR, "UpdateVideoBuffer: Failed to update video buffer: %r\n", Status));
+    DEBUG((DEBUG_ERROR, "RealX: %d, RealY: %d, RealWidth: %d, RealHeight: %d\n", RealX, RealY, RealWidth, RealHeight));
+    DEBUG((DEBUG_ERROR, "SmartUpdateVideoBuffer: Failed to update video buffer: %r\n", Status));
     return Status;
   }
 
@@ -263,10 +264,10 @@ EFIAPI
 UpdateCellInGrid(
     IN GAME_GRAPHICS_LIB_DATA *Data,
     IN GAME_GRAPHICS_LIB_GRID *Grid,
-    IN UINT32 xOffset,
-    IN UINT32 yOffset,
-    IN UINT32 x,
-    IN UINT32 y)
+    IN INT32 xOffset,
+    IN INT32 yOffset,
+    IN INT32 x,
+    IN INT32 y)
 {
   UINT32 VerticalOffset = 0;
   UINT32 HorizontalOffset = 0;
@@ -310,10 +311,10 @@ UpdateCellInGrid(
       if (i == y && j == x)
       {
         SmartUpdateVideoBuffer(Data,
-                               xOffset + HorizontalOffset,
-                               yOffset + VerticalOffset,
-                               CurrentCellHorizontalSize,
-                               CurrentCellVerticalSize);
+                               xOffset + HorizontalOffset - 1,
+                               yOffset + VerticalOffset - 1,
+                               CurrentCellHorizontalSize + 2,
+                               CurrentCellVerticalSize + 2);
         return EFI_SUCCESS;
       }
 

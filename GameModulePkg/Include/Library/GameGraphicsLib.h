@@ -152,10 +152,10 @@ EFI_STATUS
 EFIAPI
 SmartUpdateVideoBuffer(
     IN GAME_GRAPHICS_LIB_DATA *Data,
-    IN UINT32 x,
-    IN UINT32 y,
-    IN UINT32 HorizontalSize,
-    IN UINT32 VerticalSize);
+    IN INT32 x,
+    IN INT32 y,
+    IN INT32 HorizontalSize,
+    IN INT32 VerticalSize);
 
 /// @brief Creates a grid with the specified number of cells and size of the cells
 /// @param Grid The grid data structure that will be created
@@ -229,10 +229,10 @@ EFIAPI
 UpdateCellInGrid(
     IN GAME_GRAPHICS_LIB_DATA *Data,
     IN GAME_GRAPHICS_LIB_GRID *Grid,
-    IN UINT32 xOffset,
-    IN UINT32 yOffset,
-    IN UINT32 x,
-    IN UINT32 y);
+    IN INT32 xOffset,
+    IN INT32 yOffset,
+    IN INT32 x,
+    IN INT32 y);
 
 /// @brief Deletes the grid and frees the memory allocated for the grid
 /// @param Grid The grid data structure that will be deleted
